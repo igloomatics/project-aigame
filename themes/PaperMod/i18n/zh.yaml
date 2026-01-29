@@ -39,13 +39,13 @@
   translation: "以游戏作为benchmark，测试AI的能力边界。包括且不限于：强化学习，多智能体系统，大语言模型，多模态模型、具身智能等"
 
 - id: research_direction_2_title
-  translation: "AI for game"
+  translation: "AI for Game"
 
 - id: research_direction_2_desc
   translation: "利用AI打造游戏开发工具，提升游戏开发及运营过程的质量，降低过程的成本。包括且不限于：2D/3D美术资产开发，Unity/UE的code agent，游戏营销视频生成等"
 
 - id: research_direction_3_title
-  translation: "AI in game"
+  translation: "AI in Game"
 
 - id: research_direction_3_desc
   translation: "打造好玩的AI原生游戏，目标使其未来具有商业化价值。市面上接近的产品：青椒模拟器，1001夜等."
