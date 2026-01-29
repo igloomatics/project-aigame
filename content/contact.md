@@ -9,8 +9,13 @@ summary: contact
 
 {{< justify >}}
 
-Thank you for your interest in our lab at UC San Diego! If you work on machine learning and systems, and are interested in joining us, please [**read the page**](https://cseweb.ucsd.edu/~haozhang/prospective_student) on how to get involved. 
-In general, please first [**fill out this form**](https://forms.cloud.microsoft/r/RYpEJHqJgs). 
-After submitting the form, please drop an email to Prof. Hao Zhang (haozhang@ucsd.edu).
+感谢你对AI&Game项目的兴趣! 如果想加入我们，请向赵老师发送邮件。(jianzhao@zgci.ac.cn).
+
+邮件内容包括但不限于
+- 感兴趣的方向
+- 带普通生活照的个人简历
+- 本科成绩单
+- 其他有助于增进对您了解的材料（科研，竞赛，项目等）
+
 
 {{< /justify >}}

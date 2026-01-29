@@ -17,17 +17,17 @@ summary: people
 
 {{< lab_member name="KeHang Li" role="" image="kehang_li.jpg" academic="https://github.com/likeUMR" >}}
 
-{{< lab_member name="HanFang Cui" role="" image="hanfang_cui.jpg" academic="hanfangC.github.io">}}
+{{< lab_member name="HanFang Cui" role="" image="hanfang_cui.jpg" academic="https://hanfangC.github.io">}}
 
 {{< lab_member name="XuChen Li" role="" image="xuchen_li.jpg" academic="https://github.com/Xuchen-Li" >}}
 
-{{< lab_member name="Bo Ye" role="" image="bo_ye.jpg" academic="yebo0216best.github.io">}}
+{{< lab_member name="Bo Ye" role="" image="bo_ye.jpg" academic="https://yebo0216best.github.io">}}
 
 {{< lab_member name="DanNi Zeng" role="" image="danni_zeng.jpg" academic="https://github.com/Z-Danny">}}
 
-{{< lab_member name="Junda Su" role="" image="junda_su.jpg" academic="https://davids048.github.io/" twitter="https://x.com/Junda_Su08" >}}
+{{< lab_member name="ZhiYue Xu" role="" image="zhiyue_xu.jpg" academic="https://github.com/igloomatics" >}}
 
-{{< lab_member name="Junli Wang" role="" image="junli_wang.png" academic="https://junliwang.tech/" twitter="https://x.com/JunliWang2021" >}}
+{{< lab_member name="Wei Zeng" role="" image="wei_zeng.jpg" academic="https://github.com/zengwei-code">}}
 
 {{< lab_member name="Peiyuan Zhang" role="" image="peiyuan_zhang.png" academic="https://veiled-texture-20c.notion.site/Peiyuan-Zhang-ab24b48621c9491db767a76df860873a" twitter="https://x.com/py_z001?s=21&t=8b6Ok2N1qcsERbvXX588qA">}}
 
