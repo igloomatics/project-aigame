@@ -234,7 +234,7 @@
     <div class="project-grid">
       {{ range $index, $post := first 4 $posts }}
       <div class="project-card">
-        <img src="{{ $post.Params.cover.image }}" class="project-image" alt="{{ $post.Params.cover.alt }}" />
+        <img src="{{ $post.Params.cover.image | relURL }}" class="project-image" alt="{{ $post.Params.cover.alt }}" />
         <div class="card-body">
           <h5 class="project-title">{{ $post.Title }}</h5>
           <p class="project-date">{{ $post.Date | time.Format "January 2, 2006" }}</p>
@@ -248,7 +248,7 @@
     
     <!-- More Projects Button -->
     <div class="more-button-container">
-      <a href="/projects/" class="more-button">View All Projects</a>
+      <a href="{{ "projects/" | relURL }}" class="more-button">View All Projects</a>
     </div>
   </section>
 
@@ -279,7 +279,7 @@
     {{ range $index, $post := first 4 $posts }}
       {
         "title": "{{ $post.Title | safeJS }}",
-        "image": "{{ $post.Params.cover.image }}",
+        "image": "{{ $post.Params.cover.image | relURL }}",
         "alt": "{{ $post.Params.cover.alt | safeJS }}",
         "date": "{{ $post.Date | time.Format "January 2, 2006" }}",
         "content": `{{ $post.Content | safeJS }}`,
