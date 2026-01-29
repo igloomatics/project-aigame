@@ -105,3 +105,9 @@ body, a, button, .btn, [role="button"], .pointer {
 body:active, a:active, button:active, .btn:active, [role="button"]:active, .pointer:active {
     cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><circle cx="12" cy="12" r="10" fill="%23fff43c" stroke="black" stroke-width="1"/><line x1="12" y1="12" x2="22" y2="12" stroke="black" stroke-width="1"/><circle cx="12" cy="6" r="1.5" fill="black"/></svg>') 2 12, auto !important;
 }
+
+/* Custom Selection Color */
+::selection {
+    background-color: #fffbb1;
+    color: #000;
+}
