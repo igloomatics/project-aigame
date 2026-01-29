@@ -29,9 +29,9 @@ summary: people
 
 {{< lab_member name="Wei Zeng" role="" image="wei_zeng.jpg" academic="https://github.com/zengwei-code">}}
 
-{{< lab_member name="Peiyuan Zhang" role="" image="peiyuan_zhang.png" academic="https://veiled-texture-20c.notion.site/Peiyuan-Zhang-ab24b48621c9491db767a76df860873a" twitter="https://x.com/py_z001?s=21&t=8b6Ok2N1qcsERbvXX588qA">}}
+{{< lab_member name="ChuYu Ma" role="" image="chuyu_ma.jpg" academic="" twitter="">}}
 
-{{< lab_member name="Minghang Deng" role="" image="minghang_deng.jpg" academic="https://www.linkedin.com/in/minghang-deng">}}
+{{< lab_member name="ChangLan Liu" role="" image="changlan_liu.jpg" academic="">}}
 
 {{< lab_member name="Humaira Firdowse" role="" image="humaira_mohammed.jpg" academic="https://github.com/humairafirdowse">}}
 

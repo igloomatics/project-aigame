@@ -7,8 +7,8 @@ summary: publications
 
 ### 2025
 
-{{< publication title="Diffusion LLMs Can Do Faster-Than-AR Inference via Discrete Diffusion Forcing" venue="Preprint 2025" paperLink="https://arxiv.org/pdf/2508.09192" codeLink="" award="" project="https://github.com/zhijie-group/Discrete-Diffusion-Forcing" data-topic="Selected, Large Language Models" >}}
-Xu Wang, Chenkai Xu, Yijie Jin, Jiachun Jin, Hao Zhang, Zhijie Deng
+{{< publication title="Bias-Restrained Prefix Representation Finetuning for Mathematical Reasoning" venue="AAAI 2026" paperLink="https://arxiv.org/pdf/2511.10707" codeLink="" award="" project="" data-topic="Selected, Large Language Models" >}}
+Sirui Liang, Pengfei Cao, Jian Zhao, Cong Huang, Jun Zhao, Kang Liu
 {{< /publication >}}
 
 {{< publication title="Scaling Speculative Decoding with Lookahead Reasoning" venue="NeurIPS 2025" paperLink="https://arxiv.org/pdf/2506.19830" codeLink="" award="" project="https://github.com/hao-ai-lab/LookaheadReasoning" data-topic="Selected, Large Language Models" >}}

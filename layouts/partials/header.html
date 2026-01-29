@@ -49,7 +49,7 @@
             {{- $label_text := (site.Params.label.text | default site.Title) }}
             {{- if site.Title }}
             <a href="{{ "" | absLangURL }}" accesskey="h" title="{{ $label_text }} (Alt + H)">
-                <img id="logo-image" src="{{ "img/HAOAILAB_LOGO-transparent.jpg" | relURL }}" alt="{{ site.Title }}" height="40">
+                <img id="logo-image" src="{{ "img/AIGameLab.day.png" | relURL }}" alt="{{ site.Title }}" height="100">
             </a>
             {{- end }}
             <div class="logo-switches">
@@ -154,7 +154,7 @@
         // Update the logo based on the current theme directly after toggling
         const isDarkTheme = document.body.classList.contains('dark');
         const logoImage = document.getElementById('logo-image');
-        logoImage.src = isDarkTheme ? '{{ "img/HAOAILAB_LOGO-dark-mode.png" | relURL }}' : '{{ "img/HAOAILAB_LOGO-transparent.jpg" | relURL }}';
+        logoImage.src = isDarkTheme ? '{{ "img/AIGameLab.night.png" | relURL }}' : '{{ "img/AIGameLab.day.png" | relURL }}';
 
         // Optionally, save the theme preference to localStorage
         const themePreference = isDarkTheme ? 'dark' : 'light';
@@ -167,7 +167,7 @@
 
         // Update the logo based on the current theme
         const logoImage = document.getElementById('logo-image');
-        logoImage.src = isDarkTheme ? '{{ "img/HAOAILAB_LOGO-dark-mode.png" | relURL }}' : '{{ "img/HAOAILAB_LOGO-transparent.jpg" | relURL }}';
+        logoImage.src = isDarkTheme ? '{{ "img/AIGameLab.night.png" | relURL }}' : '{{ "img/AIGameLab.day.png" | relURL }}';
     }
 
     // Event listener for the theme toggle button
