@@ -8,21 +8,22 @@ summary: people
 ### Director
 
 {{< lab_members_grid >}}
-{{< lab_member name="Jian Zhao" role="Assistant Professor" image="jian_zhao.png" academic="https://cseweb.ucsd.edu/~haozhang/" twitter="https://twitter.com/haozhangml" >}}
+{{< lab_member name="Jian Zhao" role="Assistant Professor" image="jian_zhao.png" academic="https://scholar.google.com/citations?user=n6zuurcAAAAJ&hl=zh-CN&oi=ao"  >}}
 {{< /lab_members_grid >}}
 
 ### PhD Students
 
 {{< lab_members_grid >}}
-{{< lab_member name="xxx" role="" image="jian_zhao.jpg" academic="https://scholar.google.com/citations?user=n6zuurcAAAAJ&hl=zh-CN&oi=ao" >}}
 
 {{< lab_member name="KeHang Li" role="" image="kehang_li.jpg" academic="https://github.com/likeUMR" >}}
 
-{{< lab_member name="HanFang Cui" role="" image="hanfang_cui.jpg" academic="hanfangC.github.io"  >}}
+{{< lab_member name="HanFang Cui" role="" image="hanfang_cui.jpg" academic="hanfangC.github.io">}}
 
-{{< lab_member name="Mingjia Huo" role="" image="mingjia_huo.jpg" academic="https://mignonjia.github.io/">}}
+{{< lab_member name="XuChen Li" role="" image="xuchen_li.jpg" academic="https://github.com/Xuchen-Li" >}}
 
-{{< lab_member name="Will Lin" role="" image="will_lin.png" academic="https://github.com/SolitaryThinker" twitter="https://x.com/wlsaidhi">}}
+{{< lab_member name="Bo Ye" role="" image="bo_ye.jpg" academic="yebo0216best.github.io">}}
+
+{{< lab_member name="DanNi Zeng" role="" image="danni_zeng.png" academic="https://github.com/Z-Danny">}}
 
 {{< lab_member name="Junda Su" role="" image="junda_su.jpg" academic="https://davids048.github.io/" twitter="https://x.com/Junda_Su08" >}}
 

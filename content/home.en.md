@@ -19,7 +19,7 @@ Welcome to the ZGCA Game AI Lab website! We are devoted to exploring the future 
 
 
 
-## News 
+### News 
 
 {{< news_section >}}
 
@@ -44,11 +44,14 @@ Welcome to the ZGCA Game AI Lab website! We are devoted to exploring the future 
 
 &emsp;
 
-## Sponsors
+### Partnership
 
-We are grateful for the generous support from our sponsors.
+The Game AI Lab partners with Tencent TiMi Studio Group 1, Tencent Morefun Studios 2, Tencent Institute of Games 3, NetEase ThunderFire 4, and Tuyoo Games 5. We are grateful for their support!
 
 {{< sponsor_grid >}}
   {{< sponsor imageDay="icons/tencent.svg" imageNight="icons/tencent.svg" link="https://www.tencent.com/" >}}
-  {{< sponsor imageDay="icons/tuyoo.ico" imageNight="icons/tuyoo.ico" link="http://www.tuyoo.com/" >}}
+  {{< sponsor imageDay="icons/timi.png" imageNight="icons/timi.svg" link="https://www.timi.qq.com/" >}}
+  {{< sponsor imageDay="icons/morefun.webp" imageNight="icons/morefun.webp" link="https://morefun.qq.com/" >}}
+  {{< sponsor imageDay="icons/netease.png" imageNight="icons/netease.png" link="https://www.netease.com/" >}}
+  {{< sponsor imageDay="icons/tuyoo.png" imageNight="icons/tuyoo.png" link="http://www.tuyoo.com/" >}}
 {{< /sponsor_grid >}}
