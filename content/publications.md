@@ -11,11 +11,11 @@ summary: publications
 Sirui Liang, Pengfei Cao, Jian Zhao, Cong Huang, Jun Zhao, Kang Liu
 {{< /publication >}}
 
-{{< publication title="LLM-SMAC: Solving Multi-Agent Decision-Making Tasks via LLM Decision Tree Code Generation" venue="AAMAS 2025" paperLink="" codeLink="" award="" project="" data-topic="Selected, Large Language Models" >}}
+{{< publication title="LLM-SMAC: Solving Multi-Agent Decision-Making Tasks via LLM Decision Tree Code Generation" venue="AAMAS 2026" paperLink="" codeLink="" award="" project="" data-topic="Selected, Large Language Models" >}}
 Yue DENG, Weiyu Ma, Yuxin Fan, Ruyi Song, Yin Zhang, Haifeng Zhang, Jian Zhao
 {{< /publication >}}
 
-{{< publication title="Sim2Sea: Sim-to-Real Policy Transfer for Maritime Vessel Navigation in Congested Waters" venue="AAMAS 2025" paperLink="" codeLink="" award="" project="" data-topic="Selected, Large Language Models" >}}
+{{< publication title="Sim2Sea: Sim-to-Real Policy Transfer for Maritime Vessel Navigation in Congested Waters" venue="AAMAS 2026" paperLink="" codeLink="" award="" project="" data-topic="Selected, Large Language Models" >}}
 Xinyu Cui, Xuanfa Jin, Xue Yan, Yongcheng Zeng, Luoyang Sun, Wei Siying, Ruizhi Zhang, Jian Zhao, Haifeng Zhang, Jun Wang
 {{< /publication >}}
 
