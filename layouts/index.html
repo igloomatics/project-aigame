@@ -1,6 +1,6 @@
 {{ define "main" }}
   {{ partial "snake_bg.html" . }}
-  {{ range .Pages }}
+  {{ range .Site.Pages }}
     {{ if eq .Type "home" }} <!-- This checks if the page is of type "home" -->
         <article class="post-single" style="position: relative; z-index: 1;">
             <header class="post-header">
