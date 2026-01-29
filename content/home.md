@@ -24,7 +24,7 @@ Game AI Lab 与 [腾讯天美](https://www.timi.qq.com/)、[腾讯魔方](https:
 {{< sponsor_grid >}}
   {{< sponsor imageDay="icons/tencent.svg" imageNight="icons/tencent.svg" link="https://www.tencent.com/" >}}
   {{< sponsor imageDay="icons/timi.png" imageNight="icons/timi.png" link="https://www.timi.qq.com/" >}}
-  {{< sponsor imageDay="icons/morefun.webp" imageNight="icons/morefun.webp" link="https://morefun.qq.com/" >}}
+  {{< sponsor imageDay="icons/morefun.webp" imageNight="icons/morefun.png" link="https://morefun.qq.com/" >}}
   {{< sponsor imageDay="icons/netease.png" imageNight="icons/netease.png" link="https://www.netease.com/" >}}
   {{< sponsor imageDay="icons/tuyoo.png" imageNight="icons/tuyoo.png" link="http://www.tuyoo.com/" >}}
 {{< /sponsor_grid >}}
