@@ -1,0 +1,100 @@
+baseURL: 'https://aa0c-2603-8001-8d00-409c-4986-7e58-f887-434d.ngrok-free.app'
+
+title: 'Game AI Lab @ ZGCA'
+theme: 'PaperMod'
+
+googleAnalytics: 'G-T4DXGLCH1D'
+
+defaultContentLanguage: zh
+
+# Setup build timeout of hugo (in seconds)
+# FIXME: This is a workaround for rendering differnet sizes of the gif images.
+timeout: 90 # seconds
+
+pagination:
+  pagerSize: 200
+
+markup:
+  goldmark:
+    extensions:
+      passthrough:
+        delimiters:
+          block:
+          - - \[
+            - \]
+          - - $$
+            - $$
+          inline:
+          - - $
+            - $
+        enable: true
+    renderer:
+      unsafe: true
+params:
+  env: production
+  math: true
+  label:
+    icon: "img/HAOAILAB_trimmed.jpg"
+  assets:
+    css:
+      - "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+  
+languages:
+  en:
+    languageName: "English"
+    weight: 2
+    menu:
+      main:
+        - identifier: Home
+          name: Home
+          url: /
+          weight: 10
+        - identifier: News
+          name: News
+          url: /news/
+          weight: 20
+        - identifier: Projects
+          name: Projects 
+          url: /projects/  
+          weight: 30  
+        - identifier: Publications
+          name: Publications
+          url: /publications/
+          weight: 40
+        - identifier: Members
+          name: Members
+          url: /people/
+          weight: 50
+        - identifier: Join us
+          name: Join us
+          url: /contact/
+          weight: 60
+  zh:
+    languageName: "中文"
+    weight: 1
+    menu:
+      main:
+        - identifier: Home
+          name: 首页
+          url: /
+          weight: 10
+        - identifier: News
+          name: 新闻
+          url: /news/
+          weight: 20
+        - identifier: Projects
+          name: 项目
+          url: /projects/  
+          weight: 30  
+        - identifier: Publications
+          name: 论文
+          url: /publications/
+          weight: 40
+        - identifier: Members
+          name: 成员
+          url: /people/
+          weight: 50
+        - identifier: Join us
+          name: 加入我们
+          url: /contact/
+          weight: 60
