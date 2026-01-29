@@ -16,7 +16,7 @@ summary: people
 {{< lab_members_grid >}}
 {{< lab_member name="xxx" role="" image="jian_zhao.jpg" academic="https://scholar.google.com/citations?user=n6zuurcAAAAJ&hl=zh-CN&oi=ao" >}}
 
-{{< lab_member name="KeHang Li" role="" image="kehang_li.jpg" academic="https://github.com/likeUMR" }}
+{{< lab_member name="KeHang Li" role="" image="kehang_li.jpg" academic="https://github.com/likeUMR" >}}
 
 {{< lab_member name="HanFang Cui" role="" image="hanfang_cui.jpg" academic="hanfangC.github.io"  >}}
 
