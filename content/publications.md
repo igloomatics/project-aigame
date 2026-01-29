@@ -7,7 +7,7 @@ summary: publications
 
 ### 2026
 
-{{< publication title="Bias-Restrained Prefix Representation Finetuning for Mathematical Reasoning" venue="AAAI 2026" paperLink="https://arxiv.org/abs/2511.10707" codeLink="" award="" project="https://github.com/LiangThree/BREP" data-topic="Selected, Large Language Models" >}}
+{{< publication title="Bias-Restrained Prefix Representation Finetuning for Mathematical Reasoning" venue="AAAI 2026" paperLink="https://arxiv.org/abs/2511.10707" codeLink="https://github.com/LiangThree/BREP" award="" project="" data-topic="Selected, Large Language Models" >}}
 Sirui Liang, Pengfei Cao, Jian Zhao, Cong Huang, Jun Zhao, Kang Liu
 {{< /publication >}}
 
