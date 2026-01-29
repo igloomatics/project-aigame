@@ -13,25 +13,25 @@ summary: people
 
 ### PhD Students
 
-{{< lab_members_grid >}}
+{{< lab_members_grid cols="5" >}}
 
-{{< lab_member name="KeHang Li" role="" image="kehang_li.jpg" academic="https://github.com/likeUMR" >}}
+{{< lab_member name="Kehang Li" role="" image="kehang_li.jpg" academic="https://github.com/likeUMR" >}}
 
-{{< lab_member name="HanFang Cui" role="" image="hanfang_cui.jpg" academic="https://hanfangC.github.io">}}
+{{< lab_member name="Hanfang Cui" role="" image="hanfang_cui.jpg" academic="https://hanfangC.github.io">}}
 
-{{< lab_member name="XuChen Li" role="" image="xuchen_li.jpg" academic="https://github.com/Xuchen-Li" >}}
+{{< lab_member name="Xuchen Li" role="" image="xuchen_li.jpg" academic="https://github.com/Xuchen-Li" >}}
 
 {{< lab_member name="Bo Ye" role="" image="bo_ye.jpg" academic="https://yebo0216best.github.io">}}
 
-{{< lab_member name="DanNi Zeng" role="" image="danni_zeng.jpg" academic="https://github.com/Z-Danny">}}
+{{< lab_member name="Danni Zeng" role="" image="danni_zeng.jpg" academic="https://github.com/Z-Danny">}}
 
-{{< lab_member name="ZhiYue Xu" role="" image="zhiyue_xu.jpg" academic="https://github.com/igloomatics" >}}
+{{< lab_member name="Zhiyue Xu" role="" image="zhiyue_xu.jpg" academic="https://github.com/igloomatics" >}}
 
 {{< lab_member name="Wei Zeng" role="" image="wei_zeng.jpg" academic="https://github.com/zengwei-code">}}
 
-{{< lab_member name="ChuYu Ma" role="" image="chuyu_ma.jpg" academic="" twitter="">}}
+{{< lab_member name="Chuyu Ma" role="" image="chuyu_ma.jpg" academic="" twitter="">}}
 
-{{< lab_member name="ChangLan Liu" role="" image="changlan_liu.jpg" academic="">}}
+{{< lab_member name="Changlan Liu" role="" image="changlan_liu.jpg" academic="">}}
 
 
 

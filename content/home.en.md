@@ -11,7 +11,7 @@ summary: "home page for Game AI Lab @ ZGCA"
 
 
 
-{{< mission >}}
+{{< mission image="img/show/tryourgames.jpg" link="https://gallery.liruochen.cn/" >}}
 Welcome to the ZGCA AI&Game Lab website! We are devoted to exploring the future combination of games and AI. We regard games as the best training ground for AI evolution, use AI to reshape game development productivity, and are simultaneously committed to breaking script limitations to bring a personalized intelligent interaction experience to players. We are affiliated with <a href="https://www.bjzgca.edu.cn/">Beijing Zhongguancun Academy</a>.
 {{< /mission >}}
 
@@ -48,7 +48,6 @@ Welcome to the ZGCA AI&Game Lab website! We are devoted to exploring the future 
 
 ### Partnership
 
-The AI@Game Lab partners with [Tencent TiMi Studio Group](https://www.tencent.com/), [Tencent Morefun Studios](https://www.timi.qq.com/) , [Tencent Institute of Games](https://gameinstitute.qq.com/) , [NetEase ThunderFire](https://leihuo.163.com), and [Tuyoo Games](http://www.tuyoo.com/). We are grateful for their support!
 
 {{< sponsor_grid >}}
   {{< sponsor imageDay="icons/tencent.svg" imageNight="icons/tencent.svg" link="https://www.tencent.com/" >}}

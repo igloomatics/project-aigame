@@ -1,4 +1,4 @@
-<div class="lab-members-grid">
+<div class="lab-members-grid {{ if .Get "cols" }}cols-{{ .Get "cols" }}{{ end }}">
     {{ .Inner }}
 </div>
 
@@ -6,13 +6,33 @@
 .lab-members-grid {
     display: flex;
     flex-wrap: wrap;
-    gap: 1rem; /* This adds space between the items */
+    gap: 1.5rem 1rem; /* Increased vertical gap slightly */
+    margin-bottom: 2rem;
 }
 
-.lab-member {
-    width: calc(33.333% - 1rem); /* Sets the width to fit 3 per line, accounting for the gap */
+.lab-members-grid .lab-member {
+    width: calc(33.333% - 1rem);
     display: flex;
     flex-direction: column;
-    align-items: center; /* Center-align the content */
+    align-items: center;
+}
+
+.lab-members-grid.cols-5 .lab-member {
+    width: calc(20% - 1rem);
+}
+
+/* Responsive adjustment */
+@media screen and (max-width: 768px) {
+    .lab-members-grid .lab-member,
+    .lab-members-grid.cols-5 .lab-member {
+        width: calc(50% - 1rem);
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .lab-members-grid .lab-member,
+    .lab-members-grid.cols-5 .lab-member {
+        width: 100%;
+    }
 }
 </style>
