@@ -94,3 +94,12 @@
 .project-title h5 {
     font-size: 25px;
 }
+
+/* Custom Cursor - Pacman */
+body {
+    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32"><path d="M16 16 L28 6 A14 14 0 1 0 28 26 Z" fill="%23FFD700" stroke="black" stroke-width="1" transform="rotate(225 16 16)"/></svg>') 16 16, auto;
+}
+
+a, button, .btn, [role="button"], .pointer {
+    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32"><path d="M16 16 L28 6 A14 14 0 1 0 28 26 Z" fill="%23FFD700" stroke="black" stroke-width="1" transform="rotate(225 16 16)"/></svg>') 16 16, pointer;
+}

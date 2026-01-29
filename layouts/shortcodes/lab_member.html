@@ -9,13 +9,16 @@
             margin-bottom: 0px; /* Reduces space below the element, adjust as needed */
         }
         .lab-member h3 {
-            font-size: 1.0rem; /* Adjust the font size as needed */
+            font-size: 1.25rem; /* Adjust the font size as needed */
+            margin-top: 10px;
         }
         .lab-member p, .lab-member .social-links {
             font-size: 1.0rem; /* Adjust the font size as needed */
         }
         .lab-member {
             display: grid; /* Enables the use of CSS Grid layout */
+            justify-items: center; /* Center items horizontally */
+            text-align: center; /* Center text */
         }
 
         .lab-member img {
@@ -23,6 +26,7 @@
             height: auto; /* Maintains the image's aspect ratio */
             aspect-ratio: 1 / 1; /* Adjust this value to change the aspect ratio */
             object-fit: cover; /* Ensures the image covers the area, cropping as necessary */
+            border-radius: 50%; /* Make the image circular */
         }
     </style>
     <!-- Include Font Awesome CSS -->

@@ -23,7 +23,7 @@ summary: people
 
 {{< lab_member name="Bo Ye" role="" image="bo_ye.jpg" academic="yebo0216best.github.io">}}
 
-{{< lab_member name="DanNi Zeng" role="" image="danni_zeng.png" academic="https://github.com/Z-Danny">}}
+{{< lab_member name="DanNi Zeng" role="" image="danni_zeng.jpg" academic="https://github.com/Z-Danny">}}
 
 {{< lab_member name="Junda Su" role="" image="junda_su.jpg" academic="https://davids048.github.io/" twitter="https://x.com/Junda_Su08" >}}
 
