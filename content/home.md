@@ -22,7 +22,7 @@ summary: "AI&Game Lab @ ZGCA 主页"
 &emsp;
 
 ### 合作伙伴
-[腾讯天美](https://www.timi.qq.com/)、[腾讯魔方](https://morefun.qq.com/)、[腾讯游戏学堂](https://gameinstitute.qq.com/)、[网易雷火](https://leihuo.163.com)、[途游](http://www.tuyoo.com/)
+[腾讯天美](https://www.timi.qq.com/)、[腾讯魔方](https://morefun.qq.com/)、[腾讯游戏学堂](https://gameinstitute.qq.com/)、[网易雷火](https://leihuo.163.com)、[途游游戏](http://www.tuyoo.com/)
 {{< sponsor_grid >}}
   {{< sponsor imageDay="icons/timi.png" imageNight="icons/timi.png" link="https://www.timi.qq.com/" >}}
   {{< sponsor imageDay="icons/morefun.png" imageNight="icons/morefun.png" link="https://morefun.qq.com/" >}}
