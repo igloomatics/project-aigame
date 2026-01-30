@@ -31,7 +31,7 @@ summary: people
 
 {{< lab_member name="Hanfang Cui" role="" image="hanfang_cui.jpg" academic="https://hanfangC.github.io">}}
 
-{{< lab_member name="Changlan Liu" role="" image="changlan_liu.jpg" academic="">}}
+{{< lab_member name="Changlan Liu" role="" image="changlan_liu.jpg" academic="https://moran6525.github.io/">}}
 
 {{< lab_member name="Danni Zeng" role="" image="danni_zeng.jpg" academic="https://z-danny.github.io/">}}
 

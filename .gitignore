@@ -1,10 +1,8 @@
 .idea
-public/*
 *.swp
 .hugo_build.lock
 .DS_Store
 node_modules/
-public/
 dist/
 build/
 .deploy_git/
@@ -12,3 +10,4 @@ db.json
 package-lock.json
 yarn.lock
 .DS_Store
+public/
