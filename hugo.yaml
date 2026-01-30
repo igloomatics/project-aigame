@@ -1,6 +1,6 @@
 baseURL: 'https://zgc-webcompetition.gitee.io/aigame-lab/'
-relativeURLs: false
-canonifyURLs: false
+relativeURLs: true
+canonifyURLs: true
 
 title: 'AI&Game Lab @ ZGCA'
 theme: 'PaperMod'
