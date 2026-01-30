@@ -237,7 +237,7 @@
         <img src="{{ $post.Params.cover.image | relURL }}" class="project-image" alt="{{ $post.Params.cover.alt }}" />
         <div class="card-body">
           <h5 class="project-title">{{ $post.Title }}</h5>
-          <p class="project-date">{{ $post.Date | time.Format "January 2, 2006" }}</p>
+          <p class="project-date">{{ $post.Date | time.Format (default "2006-01-02" site.Params.DateFormat) }}</p>
           <button class="project-button" onclick="openModal({{ $index }})">
             View Details
           </button>
@@ -281,7 +281,7 @@
         "title": "{{ $post.Title | safeJS }}",
         "image": "{{ $post.Params.cover.image | relURL }}",
         "alt": "{{ $post.Params.cover.alt | safeJS }}",
-        "date": "{{ $post.Date | time.Format "January 2, 2006" }}",
+        "date": "{{ $post.Date | time.Format (default "2006-01-02" site.Params.DateFormat) }}",
         "content": `{{ $post.Content | safeJS }}`,
         "url": "{{ $post.RelPermalink | absURL }}"
       }{{ if not (eq (add $index 1) (len (first 4 $posts))) }},{{ end }}

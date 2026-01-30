@@ -101,7 +101,7 @@
   {{- range $paginator.Pages -}}
   <div class="news-entry">
     <div class="news-header">
-        <span class="news-date">{{ .Date.Format "2006/01/02" }}</span>
+        <span class="news-date">{{ .Date.Format "2006-01-02" }}</span>
         {{- if .Params.redirect_url -}}
           <a href="{{ .Params.redirect_url }}" class="news-title">{{ .Title }}</a>
         {{- else -}}

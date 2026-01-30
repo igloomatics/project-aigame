@@ -27,7 +27,7 @@
     {{- end -}}
     <div class="post-details">
       <h2><a href="{{ .Permalink }}">{{ .Title }}</a></h2>
-      <time datetime="{{ .Date }}">{{ .Date.Format "January 2, 2006" }}</time>
+      <time datetime="{{ .Date }}">{{ .Date.Format (default "2006-01-02" site.Params.DateFormat) }}</time>
       {{- if .Params.author -}} <!-- Check for single author -->
       <p class="post-author"> {{ .Params.author }}</p>
       {{- else if .Params.authors -}} <!-- Check for multiple authors -->

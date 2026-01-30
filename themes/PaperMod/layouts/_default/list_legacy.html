@@ -27,7 +27,7 @@
     {{- end -}}
     <div class="post-details" style="text-align: justify;"> <!-- Changed class name for clarity -->
       <h2><a href="{{ .Permalink }}">{{ .Title }}</a></h2>
-      <time datetime="{{ .Date }}">{{ .Date.Format "January 2, 2006" }}</time>
+      <time datetime="{{ .Date }}">{{ .Date.Format (default "2006-01-02" site.Params.DateFormat) }}</time>
       <p>{{ .Summary }}</p>
     </div>
   </article>

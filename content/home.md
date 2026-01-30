@@ -5,8 +5,8 @@ type: "home"
 summary: "AI&Game Lab @ ZGCA 主页"
 ---
 
-{{< mission image="img/show/tryourgames.jpg" link="https://gallery.liruochen.cn/" >}}
-欢迎来到 ZGCA AI&Game Lab 网站！我们致力于探索游戏与人工智能相结合的未来。我们视游戏为 AI 进化的最佳训练场 ，用 AI 重塑游戏开发的生产力， 同时致力于打破脚本束缚，为玩家带来千人千面的智能交互体验。我们隶属于 <a href="https://www.bjzgca.edu.cn/">北京中关村学院</a> 。
+{{< mission image="img/show/tryourgames.jpg" link="https://gallery.liruochen.cn/" image2="img/QRcode.jpg" >}}
+欢迎来到 ZGCA AI&Game Lab 网站！我们致力于探索游戏与人工智能相结合的未来。我们视游戏为 AI 进化的最佳训练场 ，用 AI 重塑游戏开发的生产力， 同时致力于打破脚本束缚，为玩家带来千人千面的智能交互体验。我们隶属于 [北京中关村学院](https://www.bjzgca.edu.cn/) 。
 {{< /mission >}}
 
 {{< research_directions >}}

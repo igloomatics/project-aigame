@@ -2,7 +2,7 @@
 title: ""
 layout: "home"
 type: "home"
-summary: "home page for Game AI Lab @ ZGCA"
+summary: "home page for AI&Game Lab @ ZGCA"
 
 ---
 
@@ -11,8 +11,8 @@ summary: "home page for Game AI Lab @ ZGCA"
 
 
 
-{{< mission image="img/show/tryourgames.jpg" link="https://gallery.liruochen.cn/" >}}
-Welcome to the ZGCA AI&Game Lab website! We are devoted to exploring the future combination of games and AI. We regard games as the best training ground for AI evolution, use AI to reshape game development productivity, and are simultaneously committed to breaking script limitations to bring a personalized intelligent interaction experience to players. We are affiliated with <a href="https://www.bjzgca.edu.cn/">Beijing Zhongguancun Academy</a>.
+{{< mission image="img/show/tryourgames.jpg" link="https://gallery.liruochen.cn/" image2="img/QRcode.jpg" >}}
+Welcome to the ZGCA AI&Game Lab website! We are devoted to exploring the future combination of games and AI. We regard games as the best training ground for AI evolution, use AI to reshape game development productivity, and are simultaneously committed to breaking script limitations to bring a personalized intelligent interaction experience to players. We are affiliated with [Beijing Zhongguancun Academy](https://www.bjzgca.edu.cn/).
 {{< /mission >}}
 
 {{< research_directions >}}
@@ -48,11 +48,10 @@ Welcome to the ZGCA AI&Game Lab website! We are devoted to exploring the future 
 
 ### Partnership
 
-
 {{< sponsor_grid >}}
-  {{< sponsor imageDay="icons/tencent.svg" imageNight="icons/tencent.svg" link="https://www.tencent.com/" >}}
   {{< sponsor imageDay="icons/timi.png" imageNight="icons/timi.png" link="https://www.timi.qq.com/" >}}
-  {{< sponsor imageDay="icons/morefun.webp" imageNight="icons/morefun.png" link="https://morefun.qq.com/" >}}
+  {{< sponsor imageDay="icons/morefun.png" imageNight="icons/morefun.png" link="https://morefun.qq.com/" >}}
+  {{< sponsor imageDay="icons/instituteofgames.png" imageNight="icons/instituteofgames.png" link="https://gameinstitute.qq.com/" >}}
   {{< sponsor imageDay="icons/netease.png" imageNight="icons/netease.png" link="https://www.netease.com/" >}}
   {{< sponsor imageDay="icons/tuyoo.png" imageNight="icons/tuyoo.png" link="http://www.tuyoo.com/" >}}
 {{< /sponsor_grid >}}

@@ -1,6 +1,6 @@
 baseURL: 'https://igloomatics.github.io/project-aigame/'
 
-title: 'Game AI Lab @ ZGCA'
+title: 'AI&Game Lab @ ZGCA'
 theme: 'PaperMod'
 
 googleAnalytics: 'G-T4DXGLCH1D'
@@ -32,6 +32,7 @@ markup:
       unsafe: true
 params:
   env: production
+  DateFormat: "2006-01-02"
   math: true
   label:
     icon: "img/HAOAILAB_trimmed.jpg"
