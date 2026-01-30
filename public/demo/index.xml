@@ -2,16 +2,16 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>Demoes on AI&amp;Game Lab @ ZGCA</title>
-    <link>https://gitee.com/zgc-webcompetition/aigame-lab/demo/</link>
+    <link>https://zgc-webcompetition.gitee.io/aigame-lab/demo/</link>
     <description>Recent content in Demoes on AI&amp;Game Lab @ ZGCA</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh</language>
-    <atom:link href="https://gitee.com/zgc-webcompetition/aigame-lab/demo/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://zgc-webcompetition.gitee.io/aigame-lab/demo/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Dynasor-CoT Demo</title>
-      <link>https://gitee.com/zgc-webcompetition/aigame-lab/demo/dynasor-cot/</link>
+      <link>https://zgc-webcompetition.gitee.io/aigame-lab/demo/dynasor-cot/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>https://gitee.com/zgc-webcompetition/aigame-lab/demo/dynasor-cot/</guid>
+      <guid>https://zgc-webcompetition.gitee.io/aigame-lab/demo/dynasor-cot/</guid>
       <description></description>
     </item>
   </channel>

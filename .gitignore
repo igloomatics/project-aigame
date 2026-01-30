@@ -10,5 +10,3 @@ db.json
 package-lock.json
 yarn.lock
 .DS_Store
-public/
-public/*
