@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/custom.css">
+<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+<link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
+<script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+
+
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>CausalWan-MoE Preview: Applying Self-Forcing Distillation To Wan2.2 | Game AI Lab @ ZGCA</title>
+<meta name="keywords" content="">
+<meta name="description" content="
+
+
+    
+        
+          
+        
+    
+
+    
+    
+    
+        
+          
+        
+    
+
+    
+        
+          
+        
+    
+
+    
+      
+        
+      
+    
+
+    
+
+
+TL;DR: The FastVideo Team is excited to share some of our progress on distilling the Wan2.2-A14B model into an autoregressive architecture, alongside the release of our preview checkpoint for CausalWan2.2-I2V-A14B. In this blog, we’ll first discuss the new MoE architecture behind the open-source SOTA performance of Wan2.2, the differences between bidirectional and autoregressive video models, and then share some of the challenges we encountered when applying Self-Forcing distillation to this architecture.">
+<meta name="author" content="FastVideo Team">
+<link rel="canonical" href="http://localhost:1313/blogs/fastvideo_causalwan_preview/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.485083f9d901fb80fd662f83966224da3c297d5451a572c18a3b4b48afb80565.css" integrity="sha256-SFCD&#43;dkB&#43;4D9Zi&#43;DlmIk2jwpfVRRpXLBijtLSK&#43;4BWU=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="http://localhost:1313/blogs/fastvideo_causalwan_preview/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(255, 255, 255);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-T4DXGLCH1D"></script>
+      <script>
+        var doNotTrack = false;
+        if ( true ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-T4DXGLCH1D');
+        }
+      </script><meta property="og:title" content="CausalWan-MoE Preview: Applying Self-Forcing Distillation To Wan2.2" />
+<meta property="og:description" content="
+
+
+    
+        
+          
+        
+    
+
+    
+    
+    
+        
+          
+        
+    
+
+    
+        
+          
+        
+    
+
+    
+      
+        
+      
+    
+
+    
+
+
+TL;DR: The FastVideo Team is excited to share some of our progress on distilling the Wan2.2-A14B model into an autoregressive architecture, alongside the release of our preview checkpoint for CausalWan2.2-I2V-A14B. In this blog, we’ll first discuss the new MoE architecture behind the open-source SOTA performance of Wan2.2, the differences between bidirectional and autoregressive video models, and then share some of the challenges we encountered when applying Self-Forcing distillation to this architecture." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://localhost:1313/blogs/fastvideo_causalwan_preview/" />
+<meta property="og:image" content="http://localhost:1313/img/fastwan/kv_cache.png" /><meta property="article:section" content="blogs" />
+<meta property="article:published_time" content="2025-11-18T11:00:00-08:00" />
+<meta property="article:modified_time" content="2025-11-18T11:00:00-08:00" />
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content="http://localhost:1313/img/fastwan/kv_cache.png" />
+<meta name="twitter:title" content="CausalWan-MoE Preview: Applying Self-Forcing Distillation To Wan2.2"/>
+<meta name="twitter:description" content="
+
+
+    
+        
+          
+        
+    
+
+    
+    
+    
+        
+          
+        
+    
+
+    
+        
+          
+        
+    
+
+    
+      
+        
+      
+    
+
+    
+
+
+TL;DR: The FastVideo Team is excited to share some of our progress on distilling the Wan2.2-A14B model into an autoregressive architecture, alongside the release of our preview checkpoint for CausalWan2.2-I2V-A14B. In this blog, we’ll first discuss the new MoE architecture behind the open-source SOTA performance of Wan2.2, the differences between bidirectional and autoregressive video models, and then share some of the challenges we encountered when applying Self-Forcing distillation to this architecture."/>
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Blogs",
+      "item": "http://localhost:1313/blogs/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "CausalWan-MoE Preview: Applying Self-Forcing Distillation To Wan2.2",
+      "item": "http://localhost:1313/blogs/fastvideo_causalwan_preview/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "CausalWan-MoE Preview: Applying Self-Forcing Distillation To Wan2.2",
+  "name": "CausalWan-MoE Preview: Applying Self-Forcing Distillation To Wan2.2",
+  "description": " TL;DR: The FastVideo Team is excited to share some of our progress on distilling the Wan2.2-A14B model into an autoregressive architecture, alongside the release of our preview checkpoint for CausalWan2.2-I2V-A14B. In this blog, we’ll first discuss the new MoE architecture behind the open-source SOTA performance of Wan2.2, the differences between bidirectional and autoregressive video models, and then share some of the challenges we encountered when applying Self-Forcing distillation to this architecture.\n",
+  "keywords": [
+    
+  ],
+  "articleBody": " TL;DR: The FastVideo Team is excited to share some of our progress on distilling the Wan2.2-A14B model into an autoregressive architecture, alongside the release of our preview checkpoint for CausalWan2.2-I2V-A14B. In this blog, we’ll first discuss the new MoE architecture behind the open-source SOTA performance of Wan2.2, the differences between bidirectional and autoregressive video models, and then share some of the challenges we encountered when applying Self-Forcing distillation to this architecture.\nModel Link CausalWan2.2-I2V-A14B-Preview-Diffusers Wan2.2-A14B Model Architecture In large language models, the MoE (mixture of experts) architecture consists of replacing a single feed-forward network, which is always active for every input in a transformer block, with several feed-forward networks (called experts), which are sparsely activated depending on the input. This architecture is widely prevalent in modern large language models since it allows for models with more parameters without a proportional increase in inference cost. Similarly, the Wan2.2-A14B series of models from Alibaba uses a new MoE architecture in which the two experts (high-noise and low-noise) are two diffusion transformers (rather than FFNs) that run sequentially and are each responsible for denoising a fraction of the total timesteps.\nSpecifically, if timestep $0$ represents a clean frame, all denoising timesteps larger than or equal to a boundary timestep $b$ are handled by the high noise expert and the rest are handled by the low noise expert. This means we can effectively think of the high noise model as predicting $x_b$, corresponding to the noisy video at the boundary timestep, while the low noise model predicts the clean video $x_0$.\nFigure 1: Wan2.2 Architecture (Source: Alibaba)\nSince it operates during the early timesteps of the denoising process, the high-noise expert is responsible for the high-level structure and motion of the video, while the low-noise expert adds more fine-grained details during later denoising timesteps to produce the final video. The Wan team found that this architecture achieved better performance than Wan 2.1 and using Wan 2.1 with a low noise or high noise expert. However, this performance gain comes at a cost: there are now two 14B models in memory, increasing RAM requirements.\nBidirectional vs Autoregressive Generation Bidirectional video models like OpenAI’s Sora, Google’s Veo, and Wan2.2-A14B are ideal when you want a single, fixed-length video. All frames are simultaneously denoised, and all frames can attend to each other, allowing future frames to affect past frames that are generated and vice versa (left part of figure 2). This leads to good temporal consistency, but high latency in generating videos. Thus, for workloads like extending or editing a video, bidirectional models are not ideal, as you need to re-run the generation process for all frames to get the updated video.\nRather than generating the entire video upfront, autoregressive models generate the next chunk* of a video conditioned only on prior output chunks, with chunks being able to attend only to themselves and past chunks. This makes long-horizon and streaming generation much more natural: we can keep going, without needing to keep all frames in the context, allowing for low-latency real-time video generation. This causal architecture is necessary for action-conditioned video generation, where the model must predict future frames from past frames and user actions.\nFigure 2: Attention matrix for bidirectional and autoregressive models (Source: Towards Video World Models)\nGoogle’s Genie 3, Tencent’s Yan, and SkyworkAI’s Matrix Game 2.0 are examples of such autoregressive models, which can produce “playable” dynamic environments that can be navigated in real time (often termed world models). As a result, these models are capable of dynamic, on-the-fly editing and generation of a video stream. We can do things like inject new conditions mid-stream, update prompts, replace keyframes, masks, or motion hints, and then only regenerate future frames, rather than the entire clip itself!\nSelf-Forcing While autoregressive models are better suited for live streaming video generation than bidirectional models, naively training them from scratch is slower, and the final model tends to be lower in quality. Additionally, converting a working bidirectional model to an autoregressive one isn’t trivial, as the latter suffers from error accumulation, leading to autoregressive drift as additional frames are generated. Prior to Self-Forcing, the two main autoregressive training methods were Teacher Forcing and Diffusion Forcing. During training, Teacher Forcing conditions a model on ground-truth latents while Diffusion Forcing conditions a model on noisy ground-truth latents, both of which don’t match the distribution of generated frames at inference.\nSelf-Forcing attempts to solve this problem by conditioning each frame’s generation on previously generated frames, resolving the train-test distribution mismatch. Since the inference process is simulated during training, Self-Forcing can also leverage KV caching, resulting in an efficient autoregressive rollout. To align the distribution of the generated videos with that of real videos, Self-Forcing can utilize a variety of distribution matching losses, including GAN (Generative Adversarial Network), SiD (Score Identity Distillation), and DMD (Distribution Matching Distillation), with DMD being the most widely used. For more details on DMD please refer to this paper or our previous post.\nFigure 3: Autoregressive Video Model Training Methods (Source: Self-Forcing Paper)\nWhen combined with a causal initialization procedure, Self-Forcing becomes a SOTA technique for distilling bidirectional diffusion models (which potentially require many denoising steps) into few-step autoregressive models and has already been scaled up to 14B parameter models and extended to create world models (e.g. Matrix Game 2.0).\nFigure 4: Full Self-Forcing Distillation Procedure (Source: CausVid Paper)\nApplying Self-Forcing To Wan2.2-A14B When applied to dense models, the original Self-Forcing recipe works well. However, it is not obvious how to translate this existing recipe to Wan2.2-A14B’s MoE architecture. Below, we describe some of the challenges we encountered when naively applying Self-Forcing to the MoE architecture.\nHigh Memory Requirements Due to the higher parameter count of the MoE, the fact that 3 separate MoE models are required for DMD distillation (real score model, fake score model, and the generator), and the use of KV-caching in Self-Forcing, VRAM and RAM usage can quickly explode without careful memory management.\nDistill both Experts Simultaneously At the time of this blog, the only current open-source bidirectional DMD recipe for the Wan2.2 MoE first distills the high noise expert and then distills the low noise expert, which results in a more complicated distillation procedure for bidirectional models since there are now two independent distillation runs. Furthermore, this approach isn’t feasible for autoregressive models if we want to condition the high noise expert on past predicted clean frames (which come from the low noise model). Therefore, our current recipe aims to distill both high and low-noise experts in the same distillation run.\nUpdating the Generator and Fake Score Model In addition to hogging up memory, the fact that the use of a DMD loss requires 3 separate models also has actual algorithmic implications when applying Self-Forcing.\nIn particular, Self-Forcing requires sampling a timestep to add noise to the generator’s output videos in order to calculate the loss for the generator and the finetuning loss for the fake score model. When the generator is an MoE in Self-Forcing, videos can either be generated by a forward pass through the high noise expert or a forward pass through both high and low noise experts, making it unclear how we should sample this timestep.\nFor our current recipe, we found that the best setting is:\nSampling a timestep from the high noise region to add noise to videos generated by only the high noise generator\nSampling a timestep from the full range to add noise to videos generated by both the high noise and low noise generators.\nI2V Inference Since our distilled model is trained as a text-to-video model, how we make it compatible for image-to-video inference isn’t obvious. One of the hyperparameters of Self-Forcing is $N$, the number of frames that constitute a chunk. For image-to-video inference, it isn’t clear whether we should treat the input image as a chunk, whereby we replicate the image $N$ times, or just as a single frame. In our experiments, we used $N=3$, and found that treating the input image as a chunk resulted in a clunky transition between the first frame and the rest of the frames. Thus, we ended up treating the image as a single frame during causal initialization, distillation, and image-to-video inference.\nConditioning the High Noise Generator During autoregressive rollout, conditioning the high noise generator using clean chunks $X_0$ or noised chunks $X_b$ is unclear. During bidirectional inference, the high noise generator is only required to denoise up to the boundary timestep, so one would think it makes sense to condition the high noise generator using noised chunks $X_b$. While this does produce high-quality text-conditioned videos, we found that it fails to give good generations in the image-to-video case. Conversely, using $X_0$ to condition the high noise generator produces videos with increased color saturation and less motion in the case of text-to-video. However, we found that this actually results in good image-to-video generation and hence we adopt this strategy for all of the results you’re about to see.\nInitial Results and Next Steps We have conducted initial experiments on Wan2.2-A14B with Self-Forcing distillation. There are some promising image-to-video results, but we are still working on improving the quality of the recipe. In particular, notice that while some results look good, others have inconsistencies and deviate from the input image (the first frame in the video). We are currently investigating the cause of this and are working on improving the quality of the videos. Stay tuned for more updates! Below are some of the good and bad results, side by side.\nGood #1\nPrompt: Some friends dancing and having fun together in circles, at a party surrounded by colored lights at a party, in a fancy old place, in a view from below them.\nBad #1\nPrompt: A determined climber is scaling a massive rock face, showcasing exceptional strength and skill. The person, clad in a teal shirt and dark pants, climbs with precision, their movements measured and deliberate. They are secured by climbing gear, which includes ropes and a harness, emphasizing their commitment to safety. The rugged texture of the sandy-colored rock provides an imposing backdrop, adding drama and scale to the climb. In the distance, other large rock formations and sparse vegetation can be seen under a bright, overcast sky, contributing to the natural and adventurous atmosphere. The scene captures a moment of focus and challenge, highlighting the climber's tenacity and the breathtaking environment.\nGood #2\nPrompt: A man wearing grey shorts jumps rope in a gym, weights and gym equipment in the background.\nBad #2\nPrompt: A little girl wearing a pink security helmet and denim overall discovers the art of cycling amidst the serene park, as the camera captures her graceful progress.\nGood #3\nPrompt: Flying over a peninsula covered in bushy trees, while discovering the sea around it, painted a beautiful turquoise blue, on a sunny day.\nBad #3\nPrompt: Little baby with a pacifier, playing with a teddy bear, accompanied by his mom, both sitting on a bed, in a close view.\nGood #4\nPrompt: Skillful cyclist doing a wheelie on a bike while riding through a forest, on a dirt road, surrounded by many trees, in the morning.\nBad #4\nPrompt: Young man skating with a skateboard on the ramps with graffiti of a park with trees, on a sunny day.\nGood #5\nPrompt: In the video, a lone rider guides a majestic horse across an expansive, open field as the sun sets in the background. The rider, dressed in a classic blue shirt and wide-brimmed hat, sits confidently in the saddle, silhouetted against the warm glow of the evening sky. The horse moves gracefully, its mane and tail flowing with each step, creating a sense of harmony between horse and rider. Surrounding the pair, towering trees form a natural border, their leaves gently rustling in the breeze. The shadows lengthen on the ground, accentuating the serene and timeless feel of the scene. The distant hills and wooden fences frame the horizon, adding depth to the tranquil landscape. A few horses graze peacefully in the background, blending into the pastoral setting. The overall ambiance evokes a sense of calmness and quietude, capturing a perfect moment in the golden light of dusk.\nBad #5\nPrompt: Flying over a forest of abundant trees and vegetation, with a river and a dam, with houses and hills in the surroundings.\nAcknowledgement We thank Anyscale, MBZUAI, and GMI Cloud for supporting the development and release of CausalWan-MoE. We are especially grateful to the developers of the Wan series, whose work laid the foundation for our advancements. Our implementation of Self-Forcing distillation would not be possible without the effort from the teams behind DMD2, CausVid, and Self-Forcing.\nThe Team Meet the team behind CausalWan-MoE-Preview:\nWill Lin, Wei Zhou, Matthew Noto, Peiyuan Zhang: Causal Initialization, Self-Forcing Recipe, Training Pipeline, Distillation experiments Richard Liaw: Advisor Hao Zhang: Advisor Citation If you use FastWan for your research, please cite our work:\n@software{fastvideo2024, title = {FastVideo: A Unified Framework for Accelerated Video Generation}, author = {The FastVideo Team}, url = {https://github.com/hao-ai-lab/FastVideo}, month = apr, year = {2024}, } Ready to experience lightning-fast video generation? Check out our documentation and FastVideo to get started today. Available now with native support for ComfyUI, Apple Silicon, Windows WSL, and Gradio web interface!\nThe FastVideo team continues to push the boundaries of real-time video generation. Stay tuned for more exciting developments!\n* For simplicity, one can think of a chunk/frame of a video as being equivalent, although a chunk is technically a group of frames that are denoised simultaneously. Thus, in the case of autoregressive video models, you’d be predicting the next chunk rather than the next frame, making these models \"chunk-wise\" autoregressive.\n",
+  "wordCount" : "2280",
+  "inLanguage": "zh",
+  "image":"http://localhost:1313/img/fastwan/kv_cache.png","datePublished": "2025-11-18T11:00:00-08:00",
+  "dateModified": "2025-11-18T11:00:00-08:00",
+  "author":{
+    "@type": "Person",
+    "name": "FastVideo Team"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "http://localhost:1313/blogs/fastvideo_causalwan_preview/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Game AI Lab @ ZGCA",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "http://localhost:1313/favicon.ico"
+    }
+  }
+}
+</script>
+    
+    	<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<script>
+  MathJax = {
+    tex: {
+      displayMath: [['\\[', '\\]'], ['$$', '$$']],  
+      inlineMath: [['\\(', '\\)'], ['$', '$']]      
+    }
+  };
+</script>
+
+    
+</head>
+
+<body class="" id="top"><head>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="Game AI Lab @ ZGCA (Alt + H)">
+                <img id="logo-image" src="/img/HAOAILAB_LOGO-transparent.jpg" alt="Game AI Lab @ ZGCA" height="40">
+            </a>
+            <div class="logo-switches">
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                  <a href="http://localhost:1313/" title="首页">
+                      <span>首页</span>
+                  </a>
+            </li>
+            <li>
+                  <a href="http://localhost:1313/blogs/" title="新闻">
+                      <span>新闻</span>
+                  </a>
+            </li>
+            <li>
+                  <a href="http://localhost:1313/projects/" title="项目">
+                      <span>项目</span>
+                  </a>
+            </li>
+            <li>
+                  <a href="http://localhost:1313/publications/" title="论文">
+                      <span>论文</span>
+                  </a>
+            </li>
+            <li>
+                  <a href="http://localhost:1313/people/" title="成员">
+                      <span>成员</span>
+                  </a>
+            </li>
+            <li>
+                  <a href="http://localhost:1313/contact/" title="加入我们">
+                      <span>加入我们</span>
+                  </a>
+            </li>
+
+            <li style="display: flex; align-items: center; margin-left: 10px;">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+                
+                <span style="margin: 0 8px;">|</span>
+                <div class="lang-switch">
+                    <ul>
+                    <li>
+                        <a href="http://localhost:1313/en/" title="English"
+                            aria-label="English">En</a>
+                    </li>
+                    </ul>
+                </div>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<script>
+    function updateThemeAndLogo() {
+        
+        document.body.classList.toggle('dark');
+
+        
+        const isDarkTheme = document.body.classList.contains('dark');
+        const logoImage = document.getElementById('logo-image');
+        logoImage.src = isDarkTheme ? '/img/HAOAILAB_LOGO-dark-mode.png' : '/img/HAOAILAB_LOGO-transparent.jpg';
+
+        
+        const themePreference = isDarkTheme ? 'dark' : 'light';
+        localStorage.setItem('pref-theme', themePreference);
+    }
+
+    function applyCurrentThemeAndLogo() {
+        
+        const isDarkTheme = document.body.classList.contains('dark');
+
+        
+        const logoImage = document.getElementById('logo-image');
+        logoImage.src = isDarkTheme ? '/img/HAOAILAB_LOGO-dark-mode.png' : '/img/HAOAILAB_LOGO-transparent.jpg';
+    }
+
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        const themeToggleButton = document.getElementById('theme-toggle');
+        if (themeToggleButton) {
+            themeToggleButton.addEventListener('click', updateThemeAndLogo);
+        }
+
+        
+        
+        const savedTheme = localStorage.getItem('pref-theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        document.body.classList.toggle('dark', savedTheme === 'dark');
+    });
+
+    
+    const themeToggleButton = document.getElementById('theme-toggle');
+    if (themeToggleButton) {
+        themeToggleButton.addEventListener('click', () => {
+            updateThemeAndLogo(); 
+        });
+        
+        applyCurrentThemeAndLogo();
+    }
+</script>
+
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-T4DXGLCH1D"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-T4DXGLCH1D');
+</script>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      CausalWan-MoE Preview: Applying Self-Forcing Distillation To Wan2.2
+    </h1>
+    <div class="post-meta"><span title='2025-11-18 11:00:00 -0800 -0800'>十一月 18, 2025</span>&nbsp;·&nbsp;11 分钟&nbsp;·&nbsp;FastVideo Team
+
+</div>
+  </header> 
+  <div class="post-content"><style>
+  .badge-container {
+    display: flex;
+    flex-wrap: nowrap;         
+    gap: 60px;
+    padding-left: 30px;
+    justify-content: flex-start;
+    overflow-x: auto;          
+  }
+
+   
+  @media (max-width: 600px) {
+    .badge-container {
+      gap: 60px;
+      padding-left: 30px;
+    }
+    .badge-container a {
+      flex-shrink: 0;
+    }
+  }
+</style>
+
+<div class="badge-container">
+    
+        <a href="https://github.com/hao-ai-lab/FastVideo" target="_blank" rel="noopener noreferrer">
+          <img src="https://img.shields.io/github/stars/hao-ai-lab/FastVideo?style=social" style="transform: scale(1.5);">
+        </a>
+    
+
+    
+    
+    
+        <a href="https://causalwan.fastvideo.org/" target="_blank" rel="noopener noreferrer">
+          <img src="https://img.shields.io/badge/🎮%20demo--green.svg?style=social" style="transform: scale(1.5);">
+        </a>
+    
+
+    
+        <a href="https://huggingface.co/FastVideo" target="_blank" rel="noopener noreferrer">
+          <img src="https://img.shields.io/badge/🤗%20huggingface--green.svg?style=social" style="transform: scale(1.5);">
+        </a>
+    
+
+    
+      <a href="https://join.slack.com/t/fastvideo/shared_invite/zt-3f4lao1uq-u~Ipx6Lt4J27AlD2y~IdLQ" target="_blank" rel="noopener noreferrer">
+        <img src="https://img.shields.io/badge/Slack--4A154B?style=social&logo=slack&logoColor=blue"
+            alt="Slack"
+            style="transform: scale(1.5);">
+      </a>
+    
+
+    
+</div>
+
+<p><strong>TL;DR:</strong> The FastVideo Team is excited to share some of our progress on distilling the Wan2.2-A14B model into an autoregressive architecture, alongside the release of our preview checkpoint for CausalWan2.2-I2V-A14B. In this blog, we’ll first discuss the new MoE architecture behind the open-source SOTA performance of Wan2.2, the differences between bidirectional and autoregressive video models, and then share some of the challenges we encountered when applying Self-Forcing distillation to this architecture.</p>
+<h2 id="model-link">Model Link<a hidden class="anchor" aria-hidden="true" href="#model-link">#</a></h2>
+<ul>
+<li><a href="https://huggingface.co/FastVideo/CausalWan2.2-I2V-A14B-Preview-Diffusers">CausalWan2.2-I2V-A14B-Preview-Diffusers</a></li>
+</ul>
+<h2 id="wan22-a14b-model-architecture">Wan2.2-A14B Model Architecture<a hidden class="anchor" aria-hidden="true" href="#wan22-a14b-model-architecture">#</a></h2>
+<p>In large language models, the MoE (mixture of experts) architecture consists of replacing a single feed-forward network, which is <em>always</em> active for every input in a transformer block, with several feed-forward networks (called experts), which are sparsely activated depending on the input. This architecture is widely prevalent in modern large language models since it allows for models with more parameters without a proportional increase in inference cost. Similarly, the Wan2.2-A14B series of models from Alibaba uses a new MoE architecture in which the two experts (high-noise and low-noise) are two diffusion transformers (rather than FFNs) that run sequentially and are each responsible for denoising a fraction of the total timesteps.</p>
+<p>Specifically, if timestep $0$ represents a clean frame, all denoising timesteps larger than or equal to a boundary timestep $b$ are handled by the high noise expert and the rest are handled by the low noise expert. This means we can effectively think of the high noise model as predicting $x_b$, corresponding to the noisy video at the boundary timestep, while the low noise model predicts the clean video $x_0$.</p>
+<style>
+  .gray-text {
+    color: #808080;
+  }
+</style>
+
+
+  <img src="img/moe_arch.png" alt="Wan2.2-MoE" style="width: 100%; height: auto;">
+
+
+<p style="text-align: center;">Figure 1: Wan2.2 Architecture (Source: <a href="https://github.com/Wan-Video/Wan2.2/tree/main">Alibaba</a>)</p>
+<p>Since it operates during the early timesteps of the denoising process, the high-noise expert is responsible for the high-level structure and motion of the video, while the low-noise expert adds more fine-grained details during later denoising timesteps to produce the final video. The Wan team found that this architecture achieved better performance than Wan 2.1 and using Wan 2.1 with a low noise or high noise expert. However, this performance gain comes at a cost: there are now two 14B models in memory, increasing RAM requirements.</p>
+<h2 id="bidirectional-vs-autoregressive-generation">Bidirectional vs Autoregressive Generation<a hidden class="anchor" aria-hidden="true" href="#bidirectional-vs-autoregressive-generation">#</a></h2>
+<p>Bidirectional video models like OpenAI’s Sora, Google’s Veo, and Wan2.2-A14B are ideal when you want a single, fixed-length video. All frames are simultaneously denoised, and all frames can attend to each other, allowing future frames to affect past frames that are generated and vice versa (left part of figure 2). This leads to good temporal consistency, but high latency in generating videos. Thus, for workloads like extending or editing a video, bidirectional models are not ideal, as you need to re-run the generation process for all frames to get the updated video.</p>
+<p>Rather than generating the entire video upfront, autoregressive models generate the next chunk<a href="#chunk-footnote">*</a> of a video conditioned only on prior output chunks, with chunks being able to attend only to themselves and past chunks. This makes long-horizon and streaming generation much more natural: we can keep going, without needing to keep all frames in the context, allowing for low-latency real-time video generation. This causal architecture is necessary for action-conditioned video generation, where the model must predict future frames from past frames and user actions.</p>
+<style>
+  .gray-text {
+    color: #808080;
+  }
+</style>
+
+
+  <img src="img/causal_dit.png" alt="Bidirectional vs Autoregressive" style="width: 100%; height: auto;">
+
+
+<p style="text-align: center;">Figure 2: Attention matrix for bidirectional and autoregressive models (Source: <a href="https://www.xunhuang.me/blogs/world_model.html">Towards Video World Models</a>)</p>
+<p>Google’s <a href="https://deepmind.google/blog/genie-3-a-new-frontier-for-world-models/">Genie 3</a>, Tencent’s <a href="https://greatx3.github.io/Yan/">Yan</a>, and SkyworkAI’s <a href="https://matrix-game-v2.github.io/">Matrix Game 2.0</a> are examples of such autoregressive models, which can produce “playable” dynamic environments that can be navigated in real time (often termed world models). As a result, these models are capable of dynamic, on-the-fly editing and generation of a video stream. We can do things like inject new conditions mid-stream, update prompts, replace keyframes, masks, or motion hints, and then only regenerate future frames, rather than the entire clip itself!</p>
+<h2 id="self-forcing">Self-Forcing<a hidden class="anchor" aria-hidden="true" href="#self-forcing">#</a></h2>
+<p>While autoregressive models are better suited for live streaming video generation than bidirectional models, naively training them from scratch is slower, and the final model tends to be lower in quality. Additionally, converting a working bidirectional model to an autoregressive one isn’t trivial, as the latter suffers from error accumulation, leading to autoregressive drift as additional frames are generated. Prior to Self-Forcing, the two main autoregressive training methods were Teacher Forcing and Diffusion Forcing. During training, Teacher Forcing conditions a model on ground-truth latents while Diffusion Forcing conditions a model on noisy ground-truth latents, both of which don’t match the distribution of generated frames at inference.</p>
+<p>Self-Forcing attempts to solve this problem by conditioning each frame’s generation on previously generated frames, resolving the train-test distribution mismatch. Since the inference process is simulated during training, Self-Forcing can also leverage KV caching, resulting in an efficient autoregressive rollout. To align the distribution of the generated videos with that of real videos, Self-Forcing can utilize a variety of distribution matching losses, including GAN (Generative Adversarial Network), SiD (Score Identity Distillation), and DMD (Distribution Matching Distillation), with DMD being the most widely used. For more details on DMD please refer to this <a href="https://arxiv.org/pdf/2405.14867">paper</a> or our <a href="https://hao-ai-lab.github.io/blogs/fastvideo_post_training/">previous post</a>.</p>
+<style>
+  .gray-text {
+    color: #808080;
+  }
+</style>
+
+
+  <img src="img/sf.png" alt="Self-Forcing" style="width: 100%; height: auto;">
+
+
+<p style="text-align: center;">Figure 3: Autoregressive Video Model Training Methods (Source: <a href="https://arxiv.org/pdf/2506.08009">Self-Forcing Paper</a>)</p>
+<p>When combined with a causal initialization procedure, Self-Forcing becomes a SOTA technique for distilling bidirectional diffusion models (which potentially require many denoising steps) into few-step autoregressive models and has already been scaled up to <a href="https://www.krea.ai/blog/krea-realtime-14b">14B parameter models</a> and extended to create world models (e.g. <a href="https://arxiv.org/pdf/2508.13009">Matrix Game 2.0</a>).</p>
+<style>
+  .gray-text {
+    color: #808080;
+  }
+</style>
+
+
+  <img src="img/causvid.png" alt="CausalWan2.2" style="width: 100%; height: auto;">
+
+
+<p style="text-align: center;">Figure 4: Full Self-Forcing Distillation Procedure (Source: <a href="https://causvid.github.io/causvid_paper.pdf">CausVid Paper</a>)</p>
+<h2 id="applying-self-forcing-to-wan22-a14b">Applying Self-Forcing To Wan2.2-A14B<a hidden class="anchor" aria-hidden="true" href="#applying-self-forcing-to-wan22-a14b">#</a></h2>
+<p>When applied to dense models, the original Self-Forcing recipe works well. However, it is not obvious how to translate this existing recipe to Wan2.2-A14B’s MoE architecture. Below, we describe some of the challenges we encountered when naively applying Self-Forcing to the MoE architecture.</p>
+<h3 id="high-memory-requirements">High Memory Requirements<a hidden class="anchor" aria-hidden="true" href="#high-memory-requirements">#</a></h3>
+<p>Due to the higher parameter count of the MoE, the fact that <strong>3</strong> separate MoE models are required for DMD distillation (real score model, fake score model, and the generator), and the use of KV-caching in Self-Forcing, VRAM and RAM usage can quickly explode without careful memory management.</p>
+<h3 id="distill-both-experts-simultaneously">Distill both Experts Simultaneously<a hidden class="anchor" aria-hidden="true" href="#distill-both-experts-simultaneously">#</a></h3>
+<p>At the time of this blog, the only current <a href="https://github.com/GoatWu/Self-Forcing-Plus/tree/wan22">open-source</a> bidirectional DMD recipe for the Wan2.2 MoE first distills the high noise expert and then distills the low noise expert, which results in a more complicated distillation procedure for bidirectional models since there are now two independent distillation runs. Furthermore, this approach isn’t feasible for autoregressive models if we want to condition the high noise expert on past predicted clean frames (which come from the low noise model). Therefore, our current recipe aims to distill both high and low-noise experts in the same distillation run.</p>
+<h3 id="updating-the-generator-and-fake-score-model">Updating the Generator and Fake Score Model<a hidden class="anchor" aria-hidden="true" href="#updating-the-generator-and-fake-score-model">#</a></h3>
+<p>In addition to hogging up memory, the fact that the use of a DMD loss requires 3 separate models also has actual algorithmic implications when applying Self-Forcing.</p>
+<p>In particular, Self-Forcing requires sampling a timestep to add noise to the generator’s output videos in order to calculate the loss for the generator and the finetuning loss for the fake score model. When the generator is an MoE in Self-Forcing, videos can either be generated by a forward pass through the high noise expert or a forward pass through both high and low noise experts, making it unclear how we should sample this timestep.</p>
+<p>For our current recipe, we found that the best setting is:</p>
+<ol>
+<li>
+<p>Sampling a timestep from the high noise region to add noise to videos generated by only the high noise generator</p>
+</li>
+<li>
+<p>Sampling a timestep from the full range to add noise to videos generated by both the high noise and low noise generators.</p>
+</li>
+</ol>
+<h3 id="i2v-inference">I2V Inference<a hidden class="anchor" aria-hidden="true" href="#i2v-inference">#</a></h3>
+<p>Since our distilled model is trained as a <em>text-to-video</em> model, how we make it compatible for image-to-video inference isn&rsquo;t obvious. One of the hyperparameters of Self-Forcing is $N$, the number of frames that constitute a chunk. For image-to-video inference, it isn’t clear whether we should treat the input image as a chunk, whereby we replicate the image $N$ times, or just as a single frame. In our experiments, we used $N=3$, and found that treating the input image as a chunk resulted in a clunky transition between the first frame and the rest of the frames. Thus, we ended up treating the image as a single frame during causal initialization, distillation, and image-to-video inference.</p>
+<h3 id="conditioning-the-high-noise-generator">Conditioning the High Noise Generator<a hidden class="anchor" aria-hidden="true" href="#conditioning-the-high-noise-generator">#</a></h3>
+<p>During autoregressive rollout, conditioning the high noise generator using clean chunks $X_0$ or noised chunks $X_b$ is unclear. During bidirectional inference, the high noise generator is only required to denoise up to the boundary timestep, so one would think it makes sense to condition the high noise generator using noised chunks $X_b$. While this does produce high-quality text-conditioned videos, we found that it fails to give good generations in the image-to-video case. Conversely, using $X_0$ to condition the high noise generator produces videos with increased color saturation and less motion in the case of text-to-video. However, we found that this actually results in good image-to-video generation and hence we adopt this strategy for all of the results you&rsquo;re about to see.</p>
+<h2 id="initial-results-and-next-steps">Initial Results and Next Steps<a hidden class="anchor" aria-hidden="true" href="#initial-results-and-next-steps">#</a></h2>
+<p>We have conducted initial experiments on Wan2.2-A14B with Self-Forcing distillation. There are some promising image-to-video results, but we are still working on improving the quality of the recipe. In particular, notice that while some results look good, others have inconsistencies and deviate from the input image (the first frame in the video). We are currently investigating the cause of this and are working on improving the quality of the videos. Stay tuned for more updates! Below are some of the good and bad results, side by side.</p>
+<div style="display: flex; flex-direction: column; gap: 1.5rem; margin-top: 1rem; margin-bottom: 2rem;">
+  <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+    <div style="flex: 1 1 300px; min-width: 0;">
+      <p><strong>Good #1</strong></p>
+      <video src="img/good_videos/1.mp4" controls muted playsinline style="max-width: 100%; border-radius: 8px;"></video>
+      <p><em>Prompt:</em> Some friends dancing and having fun together in circles, at a party surrounded by colored lights at a party, in a fancy old place, in a view from below them.</p>
+    </div>
+    <div style="flex: 1 1 300px; min-width: 0;">
+      <p><strong>Bad #1</strong></p>
+      <video src="img/bad_videos/1.mp4" controls muted playsinline style="max-width: 100%; border-radius: 8px;"></video>
+      <p><em>Prompt:</em> A determined climber is scaling a massive rock face, showcasing exceptional strength and skill. The person, clad in a teal shirt and dark pants, climbs with precision, their movements measured and deliberate. They are secured by climbing gear, which includes ropes and a harness, emphasizing their commitment to safety. The rugged texture of the sandy-colored rock provides an imposing backdrop, adding drama and scale to the climb. In the distance, other large rock formations and sparse vegetation can be seen under a bright, overcast sky, contributing to the natural and adventurous atmosphere. The scene captures a moment of focus and challenge, highlighting the climber's tenacity and the breathtaking environment.</p>
+    </div>
+  </div>
+  <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+    <div style="flex: 1 1 300px; min-width: 0;">
+      <p><strong>Good #2</strong></p>
+      <video src="img/good_videos/2.mp4" controls muted playsinline style="max-width: 100%; border-radius: 8px;"></video>
+      <p><em>Prompt:</em> A man wearing grey shorts jumps rope in a gym, weights and gym equipment in the background.</p>
+    </div>
+    <div style="flex: 1 1 300px; min-width: 0;">
+      <p><strong>Bad #2</strong></p>
+      <video src="img/bad_videos/2.mp4" controls muted playsinline style="max-width: 100%; border-radius: 8px;"></video>
+      <p><em>Prompt:</em> A little girl wearing a pink security helmet and denim overall discovers the art of cycling amidst the serene park, as the camera captures her graceful progress.</p>
+    </div>
+  </div>
+  <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+    <div style="flex: 1 1 300px; min-width: 0;">
+      <p><strong>Good #3</strong></p>
+      <video src="img/good_videos/3.mp4" controls muted playsinline style="max-width: 100%; border-radius: 8px;"></video>
+      <p><em>Prompt:</em> Flying over a peninsula covered in bushy trees, while discovering the sea around it, painted a beautiful turquoise blue, on a sunny day.</p>
+    </div>
+    <div style="flex: 1 1 300px; min-width: 0;">
+      <p><strong>Bad #3</strong></p>
+      <video src="img/bad_videos/3.mp4" controls muted playsinline style="max-width: 100%; border-radius: 8px;"></video>
+      <p><em>Prompt:</em> Little baby with a pacifier, playing with a teddy bear, accompanied by his mom, both sitting on a bed, in a close view.</p>
+    </div>
+  </div>
+  <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+    <div style="flex: 1 1 300px; min-width: 0;">
+      <p><strong>Good #4</strong></p>
+      <video src="img/good_videos/4.mp4" controls muted playsinline style="max-width: 100%; border-radius: 8px;"></video>
+      <p><em>Prompt:</em> Skillful cyclist doing a wheelie on a bike while riding through a forest, on a dirt road, surrounded by many trees, in the morning.</p>
+    </div>
+    <div style="flex: 1 1 300px; min-width: 0;">
+      <p><strong>Bad #4</strong></p>
+      <video src="img/bad_videos/4.mp4" controls muted playsinline style="max-width: 100%; border-radius: 8px;"></video>
+      <p><em>Prompt:</em> Young man skating with a skateboard on the ramps with graffiti of a park with trees, on a sunny day.</p>
+    </div>
+  </div>
+  <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+    <div style="flex: 1 1 300px; min-width: 0;">
+      <p><strong>Good #5</strong></p>
+      <video src="img/good_videos/5.mp4" controls muted playsinline style="max-width: 100%; border-radius: 8px;"></video>
+      <p><em>Prompt:</em> In the video, a lone rider guides a majestic horse across an expansive, open field as the sun sets in the background. The rider, dressed in a classic blue shirt and wide-brimmed hat, sits confidently in the saddle, silhouetted against the warm glow of the evening sky. The horse moves gracefully, its mane and tail flowing with each step, creating a sense of harmony between horse and rider. Surrounding the pair, towering trees form a natural border, their leaves gently rustling in the breeze. The shadows lengthen on the ground, accentuating the serene and timeless feel of the scene. The distant hills and wooden fences frame the horizon, adding depth to the tranquil landscape. A few horses graze peacefully in the background, blending into the pastoral setting. The overall ambiance evokes a sense of calmness and quietude, capturing a perfect moment in the golden light of dusk.</p>
+    </div>
+    <div style="flex: 1 1 300px; min-width: 0;">
+      <p><strong>Bad #5</strong></p>
+      <video src="img/bad_videos/5.mp4" controls muted playsinline style="max-width: 100%; border-radius: 8px;"></video>
+      <p><em>Prompt:</em> Flying over a forest of abundant trees and vegetation, with a river and a dam, with houses and hills in the surroundings.</p>
+    </div>
+  </div>
+</div>
+<h2 id="acknowledgement">Acknowledgement<a hidden class="anchor" aria-hidden="true" href="#acknowledgement">#</a></h2>
+<p>We thank <a href="https://www.anyscale.com/">Anyscale</a>, <a href="https://mbzuai.ac.ae/">MBZUAI</a>, and <a href="https://www.gmicloud.ai/">GMI Cloud</a> for supporting the development and release of CausalWan-MoE. We are especially grateful to the developers of the <a href="https://github.com/Wan-Video">Wan series</a>, whose work laid the foundation for our advancements. Our implementation of Self-Forcing distillation would not be possible without the effort from the teams behind <a href="https://github.com/tianweiy/DMD2">DMD2</a>, <a href="https://github.com/tianweiy/CausVid">CausVid</a>, and <a href="https://arxiv.org/pdf/2506.08009">Self-Forcing</a>.</p>
+<h2 id="the-team">The Team<a hidden class="anchor" aria-hidden="true" href="#the-team">#</a></h2>
+<p>Meet the team behind CausalWan-MoE-Preview:</p>
+<ul>
+<li><strong>Will Lin, Wei Zhou, Matthew Noto, Peiyuan Zhang</strong>: Causal Initialization, Self-Forcing Recipe, Training Pipeline, Distillation experiments</li>
+<li><strong>Richard Liaw</strong>: Advisor</li>
+<li><strong>Hao Zhang</strong>: Advisor</li>
+</ul>
+<h2 id="citation">Citation<a hidden class="anchor" aria-hidden="true" href="#citation">#</a></h2>
+<p>If you use FastWan for your research, please cite our work:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bibtex" data-lang="bibtex"><span style="display:flex;"><span><span style="color:#a6e22e">@software</span>{fastvideo2024,
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">title</span>        = <span style="color:#e6db74">{FastVideo: A Unified Framework for Accelerated Video Generation}</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">author</span>       = <span style="color:#e6db74">{The FastVideo Team}</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">url</span>          = <span style="color:#e6db74">{https://github.com/hao-ai-lab/FastVideo}</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">month</span>        = apr,
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">year</span>         = <span style="color:#e6db74">{2024}</span>,
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Ready to experience lightning-fast video generation? Check out our <a href="https://hao-ai-lab.github.io/FastVideo/index.html">documentation</a> and <a href="https://github.com/hao-ai-lab/FastVideo">FastVideo</a> to get started today.
+Available now with native support for ComfyUI, Apple Silicon, Windows WSL, and Gradio web interface!</p>
+<p><em>The FastVideo team continues to push the boundaries of real-time video generation. Stay tuned for more exciting developments!</em></p>
+<p id="chunk-footnote"><strong>*</strong> For simplicity, one can think of a chunk/frame of a video as being equivalent, although a chunk is technically a group of frames that are denoised simultaneously. Thus, in the case of autoregressive video models, you’d be predicting the next chunk rather than the next frame, making these models "chunk-wise" autoregressive.</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+    <span>&copy; 2026 Game AI Lab @ ZGCA Powered by <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a></span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+</body>
+
+</html>

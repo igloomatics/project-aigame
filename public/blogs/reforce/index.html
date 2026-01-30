@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/custom.css">
+<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+<link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
+<script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+
+
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>ReFoRCE: A Text-to-SQL Agent with Self-Refinement, Format Restriction, and Column Exploration | Game AI Lab @ ZGCA</title>
+<meta name="keywords" content="">
+<meta name="description" content="
+
+
+    
+        
+          
+        
+    
+
+    
+        
+          
+        
+    
+    
+    
+
+    
+
+    
+
+    
+
+
+
+    TL;DR: We present ReFoRCE, a Text-to-SQL agent that leads the Spider 2.0 leaderboard—the most challenging Text-to-SQL benchmark where even advanced models like GPT-4o score around 10%. ReFoRCE tackles real-world deployment issues such as massive schemas, SQL dialect diversity, and complex queries. It uses table compression to handle long contexts, format restriction for accurate SQL generation, and iterative column exploration for better schema understanding. A self-refinement pipeline with self-consistency and parallel voting further boosts performance, achieving state-of-the-art scores of 31.26 on Spider 2.0-Snow and 30.35 on Spider 2.0-Lite.
+
+
+
+
+
+
+
+    
+	
+                 
+		
+	
+	
+		Figure 1: Latest leaderboard screenshots for Spider2-Snow and Spider2-Lite.
+	
+    
+
+
+Background: Toy-Level vs. Enterprise-Grade Text-to-SQL Tasks
+
+    Text-to-SQL systems have made querying structured data more accessible through natural language, but transitioning from toy-level datasets to enterprise-grade applications reveals major challenges. For example, leading companies like Snowflake recognize Text-to-SQL as a &ldquo;holy grail&rdquo; problem in today&rsquo;s database&#43;ML community, and are actively working to address these challenges to deliver exceptional services to their customers.">
+<meta name="author" content="Minghang Deng, Ashwin Ramachandran, Canwen Xu, Lanxiang Hu, Zhewei Yao, Anupam Datta, Hao Zhang">
+<link rel="canonical" href="http://localhost:1313/blogs/reforce/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.485083f9d901fb80fd662f83966224da3c297d5451a572c18a3b4b48afb80565.css" integrity="sha256-SFCD&#43;dkB&#43;4D9Zi&#43;DlmIk2jwpfVRRpXLBijtLSK&#43;4BWU=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="http://localhost:1313/blogs/reforce/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(255, 255, 255);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-T4DXGLCH1D"></script>
+      <script>
+        var doNotTrack = false;
+        if ( true ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-T4DXGLCH1D');
+        }
+      </script><meta property="og:title" content="ReFoRCE: A Text-to-SQL Agent with Self-Refinement, Format Restriction, and Column Exploration" />
+<meta property="og:description" content="
+
+
+    
+        
+          
+        
+    
+
+    
+        
+          
+        
+    
+    
+    
+
+    
+
+    
+
+    
+
+
+
+    TL;DR: We present ReFoRCE, a Text-to-SQL agent that leads the Spider 2.0 leaderboard—the most challenging Text-to-SQL benchmark where even advanced models like GPT-4o score around 10%. ReFoRCE tackles real-world deployment issues such as massive schemas, SQL dialect diversity, and complex queries. It uses table compression to handle long contexts, format restriction for accurate SQL generation, and iterative column exploration for better schema understanding. A self-refinement pipeline with self-consistency and parallel voting further boosts performance, achieving state-of-the-art scores of 31.26 on Spider 2.0-Snow and 30.35 on Spider 2.0-Lite.
+
+
+
+
+
+
+
+    
+	
+                 
+		
+	
+	
+		Figure 1: Latest leaderboard screenshots for Spider2-Snow and Spider2-Lite.
+	
+    
+
+
+Background: Toy-Level vs. Enterprise-Grade Text-to-SQL Tasks
+
+    Text-to-SQL systems have made querying structured data more accessible through natural language, but transitioning from toy-level datasets to enterprise-grade applications reveals major challenges. For example, leading companies like Snowflake recognize Text-to-SQL as a &ldquo;holy grail&rdquo; problem in today&rsquo;s database&#43;ML community, and are actively working to address these challenges to deliver exceptional services to their customers." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://localhost:1313/blogs/reforce/" />
+<meta property="og:image" content="http://localhost:1313/img/cover_reforce.png" /><meta property="article:section" content="blogs" />
+<meta property="article:published_time" content="2025-04-10T12:00:00-08:00" />
+<meta property="article:modified_time" content="2025-04-10T12:00:00-08:00" />
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content="http://localhost:1313/img/cover_reforce.png" />
+<meta name="twitter:title" content="ReFoRCE: A Text-to-SQL Agent with Self-Refinement, Format Restriction, and Column Exploration"/>
+<meta name="twitter:description" content="
+
+
+    
+        
+          
+        
+    
+
+    
+        
+          
+        
+    
+    
+    
+
+    
+
+    
+
+    
+
+
+
+    TL;DR: We present ReFoRCE, a Text-to-SQL agent that leads the Spider 2.0 leaderboard—the most challenging Text-to-SQL benchmark where even advanced models like GPT-4o score around 10%. ReFoRCE tackles real-world deployment issues such as massive schemas, SQL dialect diversity, and complex queries. It uses table compression to handle long contexts, format restriction for accurate SQL generation, and iterative column exploration for better schema understanding. A self-refinement pipeline with self-consistency and parallel voting further boosts performance, achieving state-of-the-art scores of 31.26 on Spider 2.0-Snow and 30.35 on Spider 2.0-Lite.
+
+
+
+
+
+
+
+    
+	
+                 
+		
+	
+	
+		Figure 1: Latest leaderboard screenshots for Spider2-Snow and Spider2-Lite.
+	
+    
+
+
+Background: Toy-Level vs. Enterprise-Grade Text-to-SQL Tasks
+
+    Text-to-SQL systems have made querying structured data more accessible through natural language, but transitioning from toy-level datasets to enterprise-grade applications reveals major challenges. For example, leading companies like Snowflake recognize Text-to-SQL as a &ldquo;holy grail&rdquo; problem in today&rsquo;s database&#43;ML community, and are actively working to address these challenges to deliver exceptional services to their customers."/>
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Blogs",
+      "item": "http://localhost:1313/blogs/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "ReFoRCE: A Text-to-SQL Agent with Self-Refinement, Format Restriction, and Column Exploration",
+      "item": "http://localhost:1313/blogs/reforce/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "ReFoRCE: A Text-to-SQL Agent with Self-Refinement, Format Restriction, and Column Exploration",
+  "name": "ReFoRCE: A Text-to-SQL Agent with Self-Refinement, Format Restriction, and Column Exploration",
+  "description": " TL;DR: We present ReFoRCE, a Text-to-SQL agent that leads the Spider 2.0 leaderboard—the most challenging Text-to-SQL benchmark where even advanced models like GPT-4o score around 10%. ReFoRCE tackles real-world deployment issues such as massive schemas, SQL dialect diversity, and complex queries. It uses table compression to handle long contexts, format restriction for accurate SQL generation, and iterative column exploration for better schema understanding. A self-refinement pipeline with self-consistency and parallel voting further boosts performance, achieving state-of-the-art scores of 31.26 on Spider 2.0-Snow and 30.35 on Spider 2.0-Lite. Figure 1: Latest leaderboard screenshots for Spider2-Snow and Spider2-Lite. Background: Toy-Level vs. Enterprise-Grade Text-to-SQL Tasks Text-to-SQL systems have made querying structured data more accessible through natural language, but transitioning from toy-level datasets to enterprise-grade applications reveals major challenges. For example, leading companies like Snowflake recognize Text-to-SQL as a \u0026ldquo;holy grail\u0026rdquo; problem in today\u0026rsquo;s database+ML community, and are actively working to address these challenges to deliver exceptional services to their customers.\n",
+  "keywords": [
+    
+  ],
+  "articleBody": " TL;DR: We present ReFoRCE, a Text-to-SQL agent that leads the Spider 2.0 leaderboard—the most challenging Text-to-SQL benchmark where even advanced models like GPT-4o score around 10%. ReFoRCE tackles real-world deployment issues such as massive schemas, SQL dialect diversity, and complex queries. It uses table compression to handle long contexts, format restriction for accurate SQL generation, and iterative column exploration for better schema understanding. A self-refinement pipeline with self-consistency and parallel voting further boosts performance, achieving state-of-the-art scores of 31.26 on Spider 2.0-Snow and 30.35 on Spider 2.0-Lite. Figure 1: Latest leaderboard screenshots for Spider2-Snow and Spider2-Lite. Background: Toy-Level vs. Enterprise-Grade Text-to-SQL Tasks Text-to-SQL systems have made querying structured data more accessible through natural language, but transitioning from toy-level datasets to enterprise-grade applications reveals major challenges. For example, leading companies like Snowflake recognize Text-to-SQL as a “holy grail” problem in today’s database+ML community, and are actively working to address these challenges to deliver exceptional services to their customers.\nEarly benchmarks like Spider 1.0 and BIRD provided valuable starting points, but they fall short in complexity—featuring relatively small schemas and limited SQL functionality, with minimal support for external knowledge or diverse SQL dialects. In contrast, Spider 2.0 and its variants (Spider 2.0-lite and Spider 2.0-snow) introduce realistic enterprise scenarios, with more databases, SQL queries, function use, SQL dialects, and external knowledge. The following table compares the latest Spider 2.0 with existing benchmarks side-by-side. Despite their importance, performance on Spider 2.0 remains capped at ~25%, underscoring the need for systems that can handle ambiguous queries, long contexts, and dialect-specific reasoning in real-world environments.\nDataset # Test Examples # Test DB # Columns / DB # Tokens / SQL # Functions / SQL External Knowledge SQL Dialect Spider 1.0 2,147 40 27.1 18.5 0.0 ✗ ✗ BIRD 1,789 15 54.2 30.9 0.4 ✓ ✗ Spider 2.0-lite 547 158 803.6 144.5 6.5 ✓ ✓ Spider 2.0-snow 547 152 812.1 161.8 6.8 ✓ ✓ Conventional Text-to-SQL Benchmarks One example of Spider 1.0: Which country is the driver with the highest points from? Give me the capital of the country. SELECT T1.Capital FROM country AS T1 JOIN driver AS T2 ON T1.Country_ID = T2.Country ORDER BY T2.Points DESC LIMIT 1; It consists of non-industrial databases that typically feature only a few tables and columns, with SQL queries that are relatively straightforward. One example of BIRD: How many cards did Volkan BaÇµa illustrated whose foreign language is in French? SELECT COUNT(DISTINCT c.\"id\") AS \"Number_of_Cards\" FROM \"cards\" c JOIN \"foreign_data\" f ON c.\"uuid\" = f.\"uuid\" WHERE c.\"artist\" = 'Volkan Baǵa' AND f.\"language\" = 'French'; BIRD brings to light new challenges, including noisy database values, the need for external knowledge, and SQL efficiency, but still constructed on relatively simplistic databases. Spider 2.0 One example of Spider 2.0: Calculate the net difference between the number of pancreatic adenocarcinoma (PAAD) patients in TCGA’s dataset who are confirmed to have mutations in both KRAS and TP53 genes, and those without mutations in either gene. Utilize patient clinical and follow-up data alongside genomic mutation details from TCGA’s cancer genomics database, focusing specifically on PAAD studies where the mutations have passed quality filters. WITH paad_patients AS ( SELECT DISTINCT \"bcr_patient_barcode\" AS \"ParticipantBarcode\" FROM PANCANCER_ATLAS_2.PANCANCER_ATLAS.FILTERED_CLINICAL_PANCAN_PATIENT_WITH_FOLLOWUP WHERE \"acronym\" = 'PAAD' ), kras_mutations AS ( SELECT DISTINCT \"ParticipantBarcode\" FROM PANCANCER_ATLAS_2.PANCANCER_ATLAS.FILTERED_MC3_MAF_V5_ONE_PER_TUMOR_SAMPLE WHERE \"Study\" = 'PAAD' AND \"FILTER\" = 'PASS' AND \"Hugo_Symbol\" = 'KRAS' ), tp53_mutations AS ( SELECT DISTINCT \"ParticipantBarcode\" FROM PANCANCER_ATLAS_2.PANCANCER_ATLAS.FILTERED_MC3_MAF_V5_ONE_PER_TUMOR_SAMPLE WHERE \"Study\" = 'PAAD' AND \"FILTER\" = 'PASS' AND \"Hugo_Symbol\" = 'TP53' ), both_mutations AS ( SELECT \"ParticipantBarcode\" FROM kras_mutations INNER JOIN tp53_mutations USING (\"ParticipantBarcode\") ), neither_mutations AS ( SELECT paad.\"ParticipantBarcode\" FROM paad_patients paad LEFT JOIN kras_mutations kras ON paad.\"ParticipantBarcode\" = kras.\"ParticipantBarcode\" LEFT JOIN tp53_mutations tp53 ON paad.\"ParticipantBarcode\" = tp53.\"ParticipantBarcode\" WHERE kras.\"ParticipantBarcode\" IS NULL AND tp53.\"ParticipantBarcode\" IS NULL ) SELECT (SELECT COUNT(*) FROM both_mutations) - (SELECT COUNT(*) FROM neither_mutations) AS \"Net_difference\" Spider 2.0 incorporates multiple SQL dialects, nested columns, external knowledge, and ambiguous queries, challenging models to handle more realistic scenarios. Limitations of Current Method Realistic Text-to-SQL challenges demand agentic methods that enable LLMs to dynamically interact with databases by leveraging tools, executing commands, and planning actions. Such approaches tackle tasks ranging from planning and reasoning to advanced code generation, as evidenced by frameworks like Spider-Agent built on the ReAct paradigm for Spider 2.0. However, code agents often struggle to maintain control in long-context scenarios, as illustrated in Figure 2, frequently requiring iterative corrections for syntax errors, data types, and function selection. Moreover, current Text-to-SQL methods face difficulties handling multiple dialects, nested columns, and complex data types in the Spider 2.0 dataset. Figure 2: A base case for Spider Agent: improperly handling nested columns without self-refinement. ReFoRCE Overview ReFoRCE offers a robust solution to the unpredictability and lack of reliability in ReAct agents by introducing a structured and controlled workflow. By breaking down tasks into manageable subtasks, employing self-refinement, and utilizing format restriction and column exploration, ReFoRCE significantly enhances the agent’s ability to identify and address challenging examples. The integration of parallelization and a voting mechanism further improves the reliability of the outcomes. ReFoRCE’s flexibility and ease of integration with various database systems make it a versatile and scalable solution. This methodology provides a high level of consistency and reliability, even when faced with difficult datasets. Figure 3: An overview of the Self-Refinement Agent with Format Restriction and Column Exploration (ReFoRCE) workflow. (a) Table compression to address long-context limitations; (b) Format restriction to ensure accurate answer formatting; (c) Iterative column exploration for improved schema understanding; (d) Self-refinement pipeline comprising parallelized workflows with voting mechanisms. Table Information Compression Following the approach of Spider 2.0, we create a dictionary for each example using Database Definition Language (DDL) files that include external knowledge and table structures. When DDL files exceed setting size, we apply pattern-based matching to merge tables with similar prefixes or suffixes, retaining only one representative DDL file. For others, we provide only table names.\nFor example, the GA360 database includes tables from GA_SESSIONS_20160801 to GA_SESSIONS_20170801, each with DDL files over 150 KB, totaling more than 50 MB. Our pattern-based compression reduces these databases to under 100 KB (fewer than 30k tokens), ensuring they stay within the maximum context length.\nAlso a simple API-based schema linking ensures the context length remains manageable for long prompts.\nGiven the database information $\\mathcal{D}$ and auxiliary documentation $\\mathcal{E}$, we apply the $\\texttt{compress}$ function and concatenate the result with the question $\\mathcal{Q}$ to form the initial input prompt $\\mathcal{P}_{\\text{init}}$:\n$$ \\begin{align} \\mathcal{P}_{\\text{init}} = \\texttt{compress}(\\mathcal{D}) + \\mathcal{E} + \\mathcal{Q}. \\end{align} $$Expected Answer Format Restriction Realistic Text-to-SQL problems often face challenges with long contexts exceeding 100k tokens, leading to loss of critical information and inaccurate outputs. To address this, we propose Expected Answer Format Restriction, which involves generating and reinforcing the expected answer format (e.g., column names, data types, rows) at the outset and during self-refinement. The response must follow a strict CSV format, explicitly defining columns and ensuring each record is on a separate row. Specific cases like superlatives, percentages, and coordinates are handled clearly, and ambiguous terms may prompt additional columns for precision.\nFor instance, when given the query “Count the number of counties that experienced an increase in unemployment from 2015 to 2018, using 5-year ACS data, and a decrease in dual-eligible enrollee counts between December 1, 2015, and December 1, 2018,” model may be misled by the verbose description and extensive database context—ultimately selecting an incorrect table containing fields like geo_id, UNEMPLOYMENT_RATE_2015, UNEMPLOYMENT_RATE_2018, DUAL_ENROLLMENT_2015, and DUAL_ENROLLMENT_2018. The expected output, however, is simply a number. To guide the model accordingly, we apply format restrictions—using prompts like “answer format is Number of Countries\"—to constrain the output format and prevent irrelevant responses.\nFor an LLM chat session $\\mathcal{L}_{\\text{session}}$, we input initial and format prompts $\\mathcal{P}\\_{\\text{format}}$ to generate the expected answer format $\\mathcal{F}$:\n$$ \\begin{align} \\mathcal{F} = \\mathcal{L}_{\\text{session}}((\\mathcal{P}\\_{\\text{init}}, \\mathcal{P}\\_{\\text{format}})). \\end{align} $$Exploration of Potentially Useful Columns When directly providing database information to an LLM, lack of details on value types and SQL dialects often leads to syntax errors and incorrect function calls, which are time-consuming to correct. To address these issues, we design an approach to explore relevant columns, beginning with simple SQL queries that gradually increase in complexity.\nFor example, in Snowflake dialect cases, queries typically follow the structure SELECT DISTINCT \"COLUMN_NAME\" FROM DATABASE.SCHEMA.TABLE WHERE ..., ranging from simple conditions to more complex ones. We also employ techniques like LATERAL FLATTEN for handling nested columns, and fuzzy string matching with ILIKE or LIKE to improve robustness and avoid incorrect matches.\nWe also use an additional LLM chat session $\\mathcal{L}'\\_{\\text{session}}$ with column exploration prompts $\\mathcal{P}\\_{\\text{exploration}}$, to generate relevant tables, columns $\\mathcal{P}\\_{\\text{column}}$, and SQL queries $\\mathcal{S}\\_{\\text{exploration}}$. The resulting queries are executed using database APIs to retrieve results $\\mathcal{R}\\_{\\text{exploration}}$:\n$$ \\begin{align} \\mathcal{P}\\_{\\text{column}}, \\mathcal{S}\\_{\\text{exploration}} = \\mathcal{L}'\\_{\\text{session}}(\\mathcal{P}\\_{\\text{init}}, \\mathcal{P}\\_{\\text{exploration}}), \\end{align} $$ $$ \\begin{align} \\mathcal{R}\\_{\\text{exploration}} = \\texttt{API}(\\mathcal{S}\\_{\\text{exploration}}). \\end{align} $$Self-Refinement Workflow for Problem-Solving After obtaining the table information $\\mathcal{P}\\_{\\text{init}}$, exploring value data $\\mathcal{P}\\_{\\text{column}} + \\mathcal{R}\\_{\\text{exploration}}$, and defining the expected answer format $\\mathcal{F}$, we input these elements into the model and apply a self-refinement process to correct errors and achieve high-confidence results $\\mathcal{R}\\_{\\text{final}}$ through self-consistency: $$ \\begin{align} \\mathcal{R}\\_{\\text{final}} = \\texttt{self-refinement}(\\mathcal{P}\\_{\\text{init}}, \\mathcal{P}\\_{\\text{column}} + \\mathcal{R}\\_{\\text{exploration}}, \\mathcal{F}). \\end{align} $$Parallelization Despite the self-consistency mechanism, variations in results may occur due to different perspectives in column exploration. To improve confidence, we parallelize the workflow by running multiple threads simultaneously and use a voting mechanism to identify the most likely correct outcome. If discrepancies remain, the model further evaluates the results. Given the same format $\\mathcal{F}$ and database information $\\mathcal{P}\\_{\\text{init}}$, we launch multiple threads (set to 3 in our experiments) to execute the process above independently in parallel. The results from parallel execution are aggregated through a voting mechanism: $$ \\begin{align} \\mathcal{R}\\_{\\text{vote}} = \\texttt{model_vote}(\\mathcal{R}\\_{\\text{final1}}, \\mathcal{R}\\_{\\text{final2}}, \\mathcal{R}\\_{\\text{final3}}). \\end{align} $$ Additionally, since each example is independent and both the model and database APIs support parallel execution, we enable parallelization across examples, accelerating the process while ensuring consistency. Experiments Results We evaluate our approach using the Spider 2.0 dataset, which includes two subsets: Spider 2.0-Snow and Spider 2.0-Lite, each with 547 examples and over 150 databases. The key difference between the subsets lies in their SQL dialects: Spider 2.0-Snow focuses on Snowflake, while Spider 2.0-Lite supports BigQuery, Snowflake, and SQLite. Using Execution Accuracy (EX) as the metric, our method achieves EX scores of 31.26 on Spider 2.0-Snow and 30.35 on Spider 2.0-Lite with the $\\texttt{o1-preview}$ model, outperforming all other methods. 🧊 Spider 2.0-Snow Leaderboard Rank Date Method Score 1 Jan 28, 2025 🚀ReFoRCE + o1-preview 31.26 2 Mar 8, 2025 Spider-Agent + Claude-3.7-Sonnet-20250219 24.50 3 Mar 16, 2025 Spider-Agent + Claude-3.7-Sonnet-20250219-Thinking 24.31 4 Nov 30, 2024 Spider-Agent + o1-preview 23.58 5 Feb 11, 2025 Spider-Agent + o1-2024-12-17 23.21 6 Feb 1, 2025 Spider-Agent + o3-mini-2025-01-31 19.20 7 Mar 7, 2025 Spider-Agent + Claude-3.5-Sonnet-20241022 19.01 8 Feb 10, 2025 Spider-Agent + Claude-3.5-Sonnet-20241022 15.54 9 Mar 13, 2025 Spider-Agent + Gemini-2.0-Pro 13.89 10 Nov 30, 2024 Spider-Agent + GPT-4o-2024-11-20 12.98 💡 Spider 2.0-Lite Leaderboard Rank Date Method Score 1 Jan 28, 2025 🚀ReFoRCE + o1-preview 30.35 2 Mar 16, 2025 Spider-Agent + Claude-3.7-Sonnet-20250219-Thinking 28.52 3 Mar 8, 2025 Spider-Agent + Claude-3.7-Sonnet-20250219 25.41 4 Mar 28, 2025 LinkAlign + DeepSeek-V3 24.86 5 Feb 10, 2025 Spider-Agent + o3-mini-2025-01-31 23.40 6 Nov 30, 2024 Spider-Agent + o1-preview 23.03 7 Mar 10, 2025 Spider-Agent + DeepSeek-R1 13.71 8 Feb 10, 2025 Spider-Agent + GPT-4o-2024-11-20 13.16 9 Mar 13, 2025 Spider-Agent + QwQ-32B 11.33 10 Dec 31, 2024 Duo 8.96 Spider 2.0-Snow and Spider 2.0-Lite Leaderboards, April 2025. Case Study Here is an example where ReFoRCE succeeds. The question is the same as in Figure 2, where Spider Agent struggles with handling nested columns in the Snowflake dialect. ReFoRCE first produces the expected answer format, titled “System,Most_Frequent_License”. Compared to Spider Agent’s answer, “System,LICENSENAME,LICENSECOUNT”, ReFoRCE’s output aligns better with the question description. During the column exploration stage, ReFoRCE receives SQL execution feedback starting with simpler queries and progressing to more complex ones. Even if there are errors, it can self-correct to avoid the issues seen in Spider Agent’s output. After gaining sufficient knowledge about the database, ReFoRCE generates the final answer and verifies the executed results through its self-refinement and self-consistency workflow. Figure 4: A successful case for ReFoRCE. Get started For more details, please see our paper. We also invite you to explore our codebase! Acknowledgements This work is jointly developed with Snowflake AI Research Team. Citation @article{deng2025reforce, title={ReFoRCE: A Text-to-SQL Agent with Self-Refinement, Format Restriction, and Column Exploration}, author={Deng, Minghang and Ramachandran, Ashwin and Xu, Canwen and Hu, Lanxiang and Yao, Zhewei and Datta, Anupam and Zhang, Hao}, journal={arXiv preprint arXiv:2502.00675}, year={2025} } ",
+  "wordCount" : "2085",
+  "inLanguage": "zh",
+  "image":"http://localhost:1313/img/cover_reforce.png","datePublished": "2025-04-10T12:00:00-08:00",
+  "dateModified": "2025-04-10T12:00:00-08:00",
+  "author":{
+    "@type": "Person",
+    "name": "Minghang Deng, Ashwin Ramachandran, Canwen Xu, Lanxiang Hu, Zhewei Yao, Anupam Datta, Hao Zhang"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "http://localhost:1313/blogs/reforce/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Game AI Lab @ ZGCA",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "http://localhost:1313/favicon.ico"
+    }
+  }
+}
+</script>
+    
+    	<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<script>
+  MathJax = {
+    tex: {
+      displayMath: [['\\[', '\\]'], ['$$', '$$']],  
+      inlineMath: [['\\(', '\\)'], ['$', '$']]      
+    }
+  };
+</script>
+
+    
+</head>
+
+<body class="" id="top"><head>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="Game AI Lab @ ZGCA (Alt + H)">
+                <img id="logo-image" src="/img/HAOAILAB_LOGO-transparent.jpg" alt="Game AI Lab @ ZGCA" height="40">
+            </a>
+            <div class="logo-switches">
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                  <a href="http://localhost:1313/" title="首页">
+                      <span>首页</span>
+                  </a>
+            </li>
+            <li>
+                  <a href="http://localhost:1313/blogs/" title="新闻">
+                      <span>新闻</span>
+                  </a>
+            </li>
+            <li>
+                  <a href="http://localhost:1313/projects/" title="项目">
+                      <span>项目</span>
+                  </a>
+            </li>
+            <li>
+                  <a href="http://localhost:1313/publications/" title="论文">
+                      <span>论文</span>
+                  </a>
+            </li>
+            <li>
+                  <a href="http://localhost:1313/people/" title="成员">
+                      <span>成员</span>
+                  </a>
+            </li>
+            <li>
+                  <a href="http://localhost:1313/contact/" title="加入我们">
+                      <span>加入我们</span>
+                  </a>
+            </li>
+
+            <li style="display: flex; align-items: center; margin-left: 10px;">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+                
+                <span style="margin: 0 8px;">|</span>
+                <div class="lang-switch">
+                    <ul>
+                    <li>
+                        <a href="http://localhost:1313/en/" title="English"
+                            aria-label="English">En</a>
+                    </li>
+                    </ul>
+                </div>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<script>
+    function updateThemeAndLogo() {
+        
+        document.body.classList.toggle('dark');
+
+        
+        const isDarkTheme = document.body.classList.contains('dark');
+        const logoImage = document.getElementById('logo-image');
+        logoImage.src = isDarkTheme ? '/img/HAOAILAB_LOGO-dark-mode.png' : '/img/HAOAILAB_LOGO-transparent.jpg';
+
+        
+        const themePreference = isDarkTheme ? 'dark' : 'light';
+        localStorage.setItem('pref-theme', themePreference);
+    }
+
+    function applyCurrentThemeAndLogo() {
+        
+        const isDarkTheme = document.body.classList.contains('dark');
+
+        
+        const logoImage = document.getElementById('logo-image');
+        logoImage.src = isDarkTheme ? '/img/HAOAILAB_LOGO-dark-mode.png' : '/img/HAOAILAB_LOGO-transparent.jpg';
+    }
+
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        const themeToggleButton = document.getElementById('theme-toggle');
+        if (themeToggleButton) {
+            themeToggleButton.addEventListener('click', updateThemeAndLogo);
+        }
+
+        
+        
+        const savedTheme = localStorage.getItem('pref-theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        document.body.classList.toggle('dark', savedTheme === 'dark');
+    });
+
+    
+    const themeToggleButton = document.getElementById('theme-toggle');
+    if (themeToggleButton) {
+        themeToggleButton.addEventListener('click', () => {
+            updateThemeAndLogo(); 
+        });
+        
+        applyCurrentThemeAndLogo();
+    }
+</script>
+
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-T4DXGLCH1D"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-T4DXGLCH1D');
+</script>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      ReFoRCE: A Text-to-SQL Agent with Self-Refinement, Format Restriction, and Column Exploration
+    </h1>
+    <div class="post-meta"><span title='2025-04-10 12:00:00 -0800 -0800'>四月 10, 2025</span>&nbsp;·&nbsp;10 分钟&nbsp;·&nbsp;Minghang Deng, Ashwin Ramachandran, Canwen Xu, Lanxiang Hu, Zhewei Yao, Anupam Datta, Hao Zhang
+
+</div>
+  </header> 
+<figure class="entry-cover">
+        <img loading="eager" srcset="http://localhost:1313/blogs/reforce/img/cover_reforce_hu_4c6753fce91ebd5a.png 360w ,http://localhost:1313/blogs/reforce/img/cover_reforce_hu_761666ed95f4582e.png 480w ,http://localhost:1313/blogs/reforce/img/cover_reforce_hu_d793501c092180b9.png 720w ,http://localhost:1313/blogs/reforce/img/cover_reforce_hu_6bfc844fd4137a22.png 1080w ,http://localhost:1313/blogs/reforce/img/cover_reforce_hu_e005fc9d26d93758.png 1500w ,http://localhost:1313/blogs/reforce/img/cover_reforce.png 3711w" 
+            sizes="(min-width: 768px) 720px, 100vw" src="http://localhost:1313/blogs/reforce/img/cover_reforce.png" alt="cover_reforce" 
+            width="3711" height="1372">
+        <p>An instance of the ReFoRCE workflow operates as follows: upon receiving a question, it generates the expected answer format, systematically explores relevant tables and columns, engages in self-refinement, and ultimately decides on a final answer once self-consistency is achieved.</p>
+</figure>
+  <div class="post-content"><style>
+  .badge-container {
+    display: flex;
+    flex-wrap: nowrap;         
+    gap: 60px;
+    padding-left: 30px;
+    justify-content: flex-start;
+    overflow-x: auto;          
+  }
+
+   
+  @media (max-width: 600px) {
+    .badge-container {
+      gap: 60px;
+      padding-left: 30px;
+    }
+    .badge-container a {
+      flex-shrink: 0;
+    }
+  }
+</style>
+
+<div class="badge-container">
+    
+        <a href="https://github.com/hao-ai-lab/ReFoRCE" target="_blank" rel="noopener noreferrer">
+          <img src="https://img.shields.io/github/stars/hao-ai-lab/ReFoRCE?style=social" style="transform: scale(1.5);">
+        </a>
+    
+
+    
+        <a href="https://arxiv.org/abs/2502.00675" target="_blank" rel="noopener noreferrer">
+          <img src="https://img.shields.io/badge/arXiv-2502.00675-white.svg?style=social" style="transform: scale(1.5);">
+        </a>
+    
+    
+    
+
+    
+
+    
+
+    
+</div>
+
+<div style="text-align: justify;">
+    <strong>TL;DR:</strong> We present <strong>ReFoRCE</strong>, a Text-to-SQL agent that leads the <a href="https://spider2-sql.github.io/">Spider 2.0 leaderboard—the most challenging Text-to-SQL benchmark</a> where even advanced models like GPT-4o score around 10%. ReFoRCE tackles real-world deployment issues such as massive schemas, SQL dialect diversity, and complex queries. It uses <strong>table compression</strong> to handle long contexts, <strong>format restriction</strong> for accurate SQL generation, and iterative <strong>column exploration</strong> for better schema understanding. A <strong>self-refinement</strong> pipeline with <strong>self-consistency</strong> and parallel <strong>voting</strong> further boosts performance, achieving state-of-the-art scores of <strong>31.26</strong> on Spider 2.0-Snow and <strong>30.35</strong> on Spider 2.0-Lite.
+</div>
+
+
+
+<style>
+  .gray-text {
+    color: #808080;
+  }
+</style>
+
+
+    <figure>
+	<div style="display: flex; justify-content: center; align-items: center; gap: 20px;">
+                <img src="img/spider2-snow.png" alt="spider2-snow" style="width: 50%; height: auto;"> 
+		<img src="img/spider2-lite.png" alt="spider2-lite" style="width: 50%; height: auto;">
+	</div>
+	<div style="display: grid; place-items: center;">
+		<figcaption style="font-size: 16px;" class="gray-text">Figure 1: Latest leaderboard screenshots for Spider2-Snow and Spider2-Lite.</figcaption>
+	</div>
+    </figure>
+
+
+<h2 id="background-toy-level-vs-enterprise-grade-text-to-sql-tasks">Background: Toy-Level vs. Enterprise-Grade Text-to-SQL Tasks<a hidden class="anchor" aria-hidden="true" href="#background-toy-level-vs-enterprise-grade-text-to-sql-tasks">#</a></h2>
+<div style="text-align: justify;">
+    <p>Text-to-SQL systems have made querying structured data more accessible through natural language, but transitioning from toy-level datasets to enterprise-grade applications reveals major challenges. For example, leading companies like Snowflake recognize Text-to-SQL as a &ldquo;holy grail&rdquo; problem in today&rsquo;s database+ML community, and are actively working to address these challenges to deliver exceptional services to their customers.</p>
+<p>Early benchmarks like <a href="https://yale-lily.github.io/spider">Spider 1.0</a> and <a href="https://bird-bench.github.io/">BIRD</a> provided valuable starting points, but they fall short in complexity—featuring relatively small schemas and limited SQL functionality, with minimal support for external knowledge or diverse SQL dialects. In contrast, <a href="https://spider2-sql.github.io/"><strong>Spider 2.0</strong></a> and its variants (Spider 2.0-lite and Spider 2.0-snow) introduce realistic enterprise scenarios, with more databases, SQL queries, function use, SQL dialects, and external knowledge.
+The following table compares the latest Spider 2.0 with existing benchmarks side-by-side. Despite their importance, performance on Spider 2.0 remains capped at ~25%, underscoring the need for systems that can handle ambiguous queries, long contexts, and dialect-specific reasoning in real-world environments.</p>
+
+</div>
+
+
+
+<div style="text-align: center;">
+    <table>
+  <thead>
+      <tr>
+          <th>Dataset</th>
+          <th># Test Examples</th>
+          <th># Test DB</th>
+          <th># Columns / DB</th>
+          <th># Tokens / SQL</th>
+          <th># Functions / SQL</th>
+          <th>External Knowledge</th>
+          <th>SQL Dialect</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>Spider 1.0</td>
+          <td>2,147</td>
+          <td>40</td>
+          <td>27.1</td>
+          <td>18.5</td>
+          <td>0.0</td>
+          <td>✗</td>
+          <td>✗</td>
+      </tr>
+      <tr>
+          <td>BIRD</td>
+          <td>1,789</td>
+          <td>15</td>
+          <td>54.2</td>
+          <td>30.9</td>
+          <td>0.4</td>
+          <td>✓</td>
+          <td>✗</td>
+      </tr>
+      <tr>
+          <td>Spider 2.0-lite</td>
+          <td>547</td>
+          <td>158</td>
+          <td>803.6</td>
+          <td>144.5</td>
+          <td>6.5</td>
+          <td>✓</td>
+          <td>✓</td>
+      </tr>
+      <tr>
+          <td>Spider 2.0-snow</td>
+          <td>547</td>
+          <td>152</td>
+          <td>812.1</td>
+          <td>161.8</td>
+          <td>6.8</td>
+          <td>✓</td>
+          <td>✓</td>
+      </tr>
+  </tbody>
+</table>
+
+</div>
+
+<h3 id="conventional-text-to-sql-benchmarks">Conventional Text-to-SQL Benchmarks<a hidden class="anchor" aria-hidden="true" href="#conventional-text-to-sql-benchmarks">#</a></h3>
+<div style="text-align: justify;">
+    <strong>One example of Spider 1.0:</strong> Which country is the driver with the highest points from? Give me the capital of the country.
+</div>
+
+
+
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-SQL" data-lang="SQL"><span style="display:flex;"><span><span style="color:#66d9ef">SELECT</span> T1.Capital 
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">FROM</span> country <span style="color:#66d9ef">AS</span> T1 
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">JOIN</span> driver <span style="color:#66d9ef">AS</span> T2 <span style="color:#66d9ef">ON</span> T1.Country_ID  <span style="color:#f92672">=</span>  T2.Country 
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">ORDER</span> <span style="color:#66d9ef">BY</span> T2.Points <span style="color:#66d9ef">DESC</span> <span style="color:#66d9ef">LIMIT</span> <span style="color:#ae81ff">1</span>;
+</span></span></code></pre></div><div style="text-align: justify;">
+    It consists of non-industrial databases that typically feature only a few tables and columns, with SQL queries that are relatively straightforward.
+</div>
+
+
+
+<div style="text-align: justify;">
+    <strong>One example of BIRD:</strong> How many cards did Volkan BaÇµa illustrated whose foreign language is in French?
+</div>
+
+
+
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-SQL" data-lang="SQL"><span style="display:flex;"><span><span style="color:#66d9ef">SELECT</span> <span style="color:#66d9ef">COUNT</span>(<span style="color:#66d9ef">DISTINCT</span> <span style="color:#66d9ef">c</span>.<span style="color:#e6db74">&#34;id&#34;</span>) <span style="color:#66d9ef">AS</span> <span style="color:#e6db74">&#34;Number_of_Cards&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">FROM</span> <span style="color:#e6db74">&#34;cards&#34;</span> <span style="color:#66d9ef">c</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">JOIN</span> <span style="color:#e6db74">&#34;foreign_data&#34;</span> f <span style="color:#66d9ef">ON</span> <span style="color:#66d9ef">c</span>.<span style="color:#e6db74">&#34;uuid&#34;</span> <span style="color:#f92672">=</span> f.<span style="color:#e6db74">&#34;uuid&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">WHERE</span> <span style="color:#66d9ef">c</span>.<span style="color:#e6db74">&#34;artist&#34;</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;Volkan Baǵa&#39;</span> <span style="color:#66d9ef">AND</span> f.<span style="color:#e6db74">&#34;language&#34;</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;French&#39;</span>;
+</span></span></code></pre></div><div style="text-align: justify;">
+    BIRD brings to light new challenges, including noisy database values, the need for external knowledge, and SQL efficiency, but still constructed on relatively simplistic databases.
+</div>
+
+
+
+<h3 id="spider-20">Spider 2.0<a hidden class="anchor" aria-hidden="true" href="#spider-20">#</a></h3>
+<div style="text-align: justify;">
+    <strong>One example of Spider 2.0:</strong> Calculate the net difference between the number of pancreatic adenocarcinoma (PAAD) patients in TCGA&rsquo;s dataset who are confirmed to have mutations in both KRAS and TP53 genes, and those without mutations in either gene. Utilize patient clinical and follow-up data alongside genomic mutation details from TCGA’s cancer genomics database, focusing specifically on PAAD studies where the mutations have passed quality filters.
+</div>
+
+
+
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-SQL" data-lang="SQL"><span style="display:flex;"><span><span style="color:#66d9ef">WITH</span> paad_patients <span style="color:#66d9ef">AS</span> (
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">SELECT</span> <span style="color:#66d9ef">DISTINCT</span> <span style="color:#e6db74">&#34;bcr_patient_barcode&#34;</span> <span style="color:#66d9ef">AS</span> <span style="color:#e6db74">&#34;ParticipantBarcode&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">FROM</span> PANCANCER_ATLAS_2.PANCANCER_ATLAS.FILTERED_CLINICAL_PANCAN_PATIENT_WITH_FOLLOWUP
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">WHERE</span> <span style="color:#e6db74">&#34;acronym&#34;</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;PAAD&#39;</span>
+</span></span><span style="display:flex;"><span>), 
+</span></span><span style="display:flex;"><span>kras_mutations <span style="color:#66d9ef">AS</span> (
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">SELECT</span> <span style="color:#66d9ef">DISTINCT</span> <span style="color:#e6db74">&#34;ParticipantBarcode&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">FROM</span> PANCANCER_ATLAS_2.PANCANCER_ATLAS.FILTERED_MC3_MAF_V5_ONE_PER_TUMOR_SAMPLE
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">WHERE</span> <span style="color:#e6db74">&#34;Study&#34;</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;PAAD&#39;</span> <span style="color:#66d9ef">AND</span> <span style="color:#e6db74">&#34;FILTER&#34;</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;PASS&#39;</span> <span style="color:#66d9ef">AND</span> <span style="color:#e6db74">&#34;Hugo_Symbol&#34;</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;KRAS&#39;</span>
+</span></span><span style="display:flex;"><span>),
+</span></span><span style="display:flex;"><span>tp53_mutations <span style="color:#66d9ef">AS</span> (
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">SELECT</span> <span style="color:#66d9ef">DISTINCT</span> <span style="color:#e6db74">&#34;ParticipantBarcode&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">FROM</span> PANCANCER_ATLAS_2.PANCANCER_ATLAS.FILTERED_MC3_MAF_V5_ONE_PER_TUMOR_SAMPLE
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">WHERE</span> <span style="color:#e6db74">&#34;Study&#34;</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;PAAD&#39;</span> <span style="color:#66d9ef">AND</span> <span style="color:#e6db74">&#34;FILTER&#34;</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;PASS&#39;</span> <span style="color:#66d9ef">AND</span> <span style="color:#e6db74">&#34;Hugo_Symbol&#34;</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;TP53&#39;</span>
+</span></span><span style="display:flex;"><span>),
+</span></span><span style="display:flex;"><span>both_mutations <span style="color:#66d9ef">AS</span> (
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">SELECT</span> <span style="color:#e6db74">&#34;ParticipantBarcode&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">FROM</span> kras_mutations
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">INNER</span> <span style="color:#66d9ef">JOIN</span> tp53_mutations <span style="color:#66d9ef">USING</span> (<span style="color:#e6db74">&#34;ParticipantBarcode&#34;</span>)
+</span></span><span style="display:flex;"><span>),
+</span></span><span style="display:flex;"><span>neither_mutations <span style="color:#66d9ef">AS</span> (
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">SELECT</span> paad.<span style="color:#e6db74">&#34;ParticipantBarcode&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">FROM</span> paad_patients paad
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">LEFT</span> <span style="color:#66d9ef">JOIN</span> kras_mutations kras <span style="color:#66d9ef">ON</span> paad.<span style="color:#e6db74">&#34;ParticipantBarcode&#34;</span> <span style="color:#f92672">=</span> kras.<span style="color:#e6db74">&#34;ParticipantBarcode&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">LEFT</span> <span style="color:#66d9ef">JOIN</span> tp53_mutations tp53 <span style="color:#66d9ef">ON</span> paad.<span style="color:#e6db74">&#34;ParticipantBarcode&#34;</span> <span style="color:#f92672">=</span> tp53.<span style="color:#e6db74">&#34;ParticipantBarcode&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">WHERE</span> kras.<span style="color:#e6db74">&#34;ParticipantBarcode&#34;</span> <span style="color:#66d9ef">IS</span> <span style="color:#66d9ef">NULL</span> <span style="color:#66d9ef">AND</span> tp53.<span style="color:#e6db74">&#34;ParticipantBarcode&#34;</span> <span style="color:#66d9ef">IS</span> <span style="color:#66d9ef">NULL</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">SELECT</span> 
+</span></span><span style="display:flex;"><span>    (<span style="color:#66d9ef">SELECT</span> <span style="color:#66d9ef">COUNT</span>(<span style="color:#f92672">*</span>) <span style="color:#66d9ef">FROM</span> both_mutations) <span style="color:#f92672">-</span> (<span style="color:#66d9ef">SELECT</span> <span style="color:#66d9ef">COUNT</span>(<span style="color:#f92672">*</span>) <span style="color:#66d9ef">FROM</span> neither_mutations) <span style="color:#66d9ef">AS</span> <span style="color:#e6db74">&#34;Net_difference&#34;</span>
+</span></span></code></pre></div><div style="text-align: justify;">
+    Spider 2.0 incorporates multiple SQL dialects, nested columns, external knowledge, and ambiguous queries, challenging models to handle more realistic scenarios.
+</div>
+
+
+
+<h3 id="limitations-of-current-method">Limitations of Current Method<a hidden class="anchor" aria-hidden="true" href="#limitations-of-current-method">#</a></h3>
+<div style="text-align: justify;">
+    Realistic Text-to-SQL challenges demand agentic methods that enable LLMs to dynamically interact with databases by leveraging tools, executing commands, and planning actions. Such approaches tackle tasks ranging from planning and reasoning to advanced code generation, as evidenced by frameworks like <a href="https://arxiv.org/abs/2411.07763">Spider-Agent</a> built on the ReAct paradigm for Spider 2.0. However, code agents often struggle to maintain control in long-context scenarios, as illustrated in Figure 2, frequently requiring iterative corrections for syntax errors, data types, and function selection. Moreover, current Text-to-SQL methods face difficulties handling multiple dialects, nested columns, and complex data types in the Spider 2.0 dataset.
+</div>
+
+
+
+<style>
+  .gray-text {
+    color: #808080;
+  }
+</style>
+
+
+  <figure>
+	  <div style="display: grid; place-items: center;">
+      <img src="img/example_spider_agent.png" alt="spider_agent" style="width: 120%; height: auto;">
+      <figcaption style="font-size: 16px;" class="gray-text">Figure 2: A base case for Spider Agent: improperly handling nested columns without self-refinement.</figcaption>
+    </div>
+  </figure>
+
+
+<h2 id="reforce">ReFoRCE<a hidden class="anchor" aria-hidden="true" href="#reforce">#</a></h2>
+<h3 id="overview">Overview<a hidden class="anchor" aria-hidden="true" href="#overview">#</a></h3>
+<div style="text-align: justify;">
+    ReFoRCE offers a robust solution to the unpredictability and lack of reliability in ReAct agents by introducing a structured and controlled workflow. By breaking down tasks into manageable subtasks, employing self-refinement, and utilizing format restriction and column exploration, ReFoRCE significantly enhances the agent&rsquo;s ability to identify and address challenging examples. The integration of parallelization and a voting mechanism further improves the reliability of the outcomes. ReFoRCE’s flexibility and ease of integration with various database systems make it a versatile and scalable solution. This methodology provides a high level of consistency and reliability, even when faced with difficult datasets.
+</div>
+
+
+
+<style>
+  .gray-text {
+    color: #808080;
+  }
+</style>
+
+
+  <figure>
+	  <div style="display: grid; place-items: center;">
+      <img src="img/cover_reforce.png" alt="cover_reforce" style="width: 130%; height: auto;">
+      <figcaption style="font-size: 16px;" class="gray-text">Figure 3: An overview of the Self-Refinement Agent with Format Restriction and Column Exploration (ReFoRCE) workflow. (a) Table compression to address long-context limitations; (b) Format restriction to ensure accurate answer formatting; (c) Iterative column exploration for improved schema understanding; (d) Self-refinement pipeline comprising parallelized workflows with voting mechanisms.</figcaption>
+    </div>
+  </figure>
+
+
+<h3 id="table-information-compression">Table Information Compression<a hidden class="anchor" aria-hidden="true" href="#table-information-compression">#</a></h3>
+<div style="text-align: justify;">
+    <p>Following the approach of Spider 2.0, we create a dictionary for each example using Database Definition Language (DDL) files that include external knowledge and table structures. When DDL files exceed setting size, we apply pattern-based matching to merge tables with similar prefixes or suffixes, retaining only one representative DDL file. For others, we provide only table names.</p>
+<p>For example, the <code>GA360</code> database includes tables from <code>GA_SESSIONS_20160801</code> to <code>GA_SESSIONS_20170801</code>, each with DDL files over <strong>150 KB</strong>, totaling more than <strong>50 MB</strong>. Our pattern-based compression reduces these databases to under <strong>100 KB</strong> (fewer than <strong>30k</strong> tokens), ensuring they stay within the maximum context length.</p>
+<p>Also a simple API-based schema linking ensures the context length remains manageable for long prompts.</p>
+<p>Given the database information $\mathcal{D}$ and auxiliary documentation $\mathcal{E}$, we apply the $\texttt{compress}$ function and concatenate the result with the question $\mathcal{Q}$ to form the initial input prompt $\mathcal{P}_{\text{init}}$:</p>
+
+</div>
+
+
+
+$$
+\begin{align}
+\mathcal{P}_{\text{init}} = \texttt{compress}(\mathcal{D}) + \mathcal{E} + \mathcal{Q}.
+\end{align}
+$$<h3 id="expected-answer-format-restriction">Expected Answer Format Restriction<a hidden class="anchor" aria-hidden="true" href="#expected-answer-format-restriction">#</a></h3>
+<div style="text-align: justify;">
+    <p>Realistic Text-to-SQL problems often face challenges with long contexts exceeding 100k tokens, leading to loss of critical information and inaccurate outputs. To address this, we propose Expected Answer Format Restriction, which involves generating and reinforcing the expected answer format (e.g., column names, data types, rows) at the outset and during self-refinement. The response must follow a strict CSV format, explicitly defining columns and ensuring each record is on a separate row. Specific cases like superlatives, percentages, and coordinates are handled clearly, and ambiguous terms may prompt additional columns for precision.</p>
+<p>For instance, when given the query &ldquo;Count the number of counties that experienced an increase in unemployment from 2015 to 2018, using 5-year ACS data, and a decrease in dual-eligible enrollee counts between December 1, 2015, and December 1, 2018,&rdquo; model may be misled by the verbose description and extensive database context—ultimately selecting an incorrect table containing fields like <code>geo_id</code>, <code>UNEMPLOYMENT_RATE_2015</code>, <code>UNEMPLOYMENT_RATE_2018</code>, <code>DUAL_ENROLLMENT_2015</code>, and <code>DUAL_ENROLLMENT_2018</code>. The expected output, however, is simply a number. To guide the model accordingly, we apply format restrictions—using prompts like &ldquo;answer format is <code>Number of Countries</code>&quot;—to constrain the output format and prevent irrelevant responses.</p>
+<p>For an LLM chat session $\mathcal{L}_{\text{session}}$, we input initial and format prompts $\mathcal{P}\_{\text{format}}$ to generate the expected answer format $\mathcal{F}$:</p>
+
+</div>
+
+
+
+$$
+\begin{align}
+\mathcal{F} = \mathcal{L}_{\text{session}}((\mathcal{P}\_{\text{init}}, \mathcal{P}\_{\text{format}})).
+\end{align}
+$$<h3 id="exploration-of-potentially-useful-columns">Exploration of Potentially Useful Columns<a hidden class="anchor" aria-hidden="true" href="#exploration-of-potentially-useful-columns">#</a></h3>
+<p><div style="text-align: justify;">
+    <p>When directly providing database information to an LLM, lack of details on value types and SQL dialects often leads to syntax errors and incorrect function calls, which are time-consuming to correct. To address these issues, we design an approach to explore relevant columns, beginning with simple SQL queries that gradually increase in complexity.</p>
+<p>For example, in Snowflake dialect cases, queries typically follow the structure <code>SELECT DISTINCT &quot;COLUMN_NAME&quot; FROM DATABASE.SCHEMA.TABLE WHERE ...</code>, ranging from simple conditions to more complex ones. We also employ techniques like <code>LATERAL FLATTEN</code> for handling nested columns, and fuzzy string matching with <code>ILIKE</code> or <code>LIKE</code> to improve robustness and avoid incorrect matches.</p>
+<p>We also use an additional LLM chat session $\mathcal{L}'\_{\text{session}}$ with column exploration prompts $\mathcal{P}\_{\text{exploration}}$, to generate relevant tables, columns $\mathcal{P}\_{\text{column}}$, and SQL queries $\mathcal{S}\_{\text{exploration}}$. The resulting queries are executed using database APIs to retrieve results $\mathcal{R}\_{\text{exploration}}$:</p>
+
+</div>
+
+
+
+</p>
+$$
+\begin{align}
+\mathcal{P}\_{\text{column}}, \mathcal{S}\_{\text{exploration}} = \mathcal{L}'\_{\text{session}}(\mathcal{P}\_{\text{init}}, \mathcal{P}\_{\text{exploration}}),
+\end{align}
+$$<p>
+</p>
+$$
+\begin{align}
+\mathcal{R}\_{\text{exploration}} = \texttt{API}(\mathcal{S}\_{\text{exploration}}).
+\end{align}
+$$<h3 id="self-refinement-workflow-for-problem-solving">Self-Refinement Workflow for Problem-Solving<a hidden class="anchor" aria-hidden="true" href="#self-refinement-workflow-for-problem-solving">#</a></h3>
+<p><div style="text-align: justify;">
+    After obtaining the table information $\mathcal{P}\_{\text{init}}$, exploring value data $\mathcal{P}\_{\text{column}} + \mathcal{R}\_{\text{exploration}}$, and defining the expected answer format $\mathcal{F}$, we input these elements into the model and apply a self-refinement process to correct errors and achieve high-confidence results $\mathcal{R}\_{\text{final}}$ through self-consistency:
+</div>
+
+
+
+</p>
+$$
+\begin{align}
+\mathcal{R}\_{\text{final}} = \texttt{self-refinement}(\mathcal{P}\_{\text{init}}, \mathcal{P}\_{\text{column}} + \mathcal{R}\_{\text{exploration}}, \mathcal{F}).
+\end{align}
+$$<h3 id="parallelization">Parallelization<a hidden class="anchor" aria-hidden="true" href="#parallelization">#</a></h3>
+<p><div style="text-align: justify;">
+    Despite the self-consistency mechanism, variations in results may occur due to different perspectives in column exploration. To improve confidence, we parallelize the workflow by running multiple threads simultaneously and use a voting mechanism to identify the most likely correct outcome. If discrepancies remain, the model further evaluates the results. Given the same format $\mathcal{F}$ and database information $\mathcal{P}\_{\text{init}}$, we launch multiple threads (set to 3 in our experiments) to execute the process above independently in parallel. The results from parallel execution are aggregated through a voting mechanism:
+</div>
+
+
+
+</p>
+$$
+\begin{align}
+\mathcal{R}\_{\text{vote}} = \texttt{model_vote}(\mathcal{R}\_{\text{final1}}, \mathcal{R}\_{\text{final2}}, \mathcal{R}\_{\text{final3}}).
+\end{align}
+$$<p>
+<div style="text-align: justify;">
+    Additionally, since each example is independent and both the model and database APIs support parallel execution, we enable parallelization across examples, accelerating the process while ensuring consistency.
+</div>
+
+
+</p>
+<h2 id="experiments">Experiments<a hidden class="anchor" aria-hidden="true" href="#experiments">#</a></h2>
+<h3 id="results">Results<a hidden class="anchor" aria-hidden="true" href="#results">#</a></h3>
+<div style="text-align: justify;">
+    We evaluate our approach using the Spider 2.0 dataset, which includes two subsets: Spider 2.0-Snow and Spider 2.0-Lite, each with 547 examples and over 150 databases. The key difference between the subsets lies in their SQL dialects: Spider 2.0-Snow focuses on Snowflake, while Spider 2.0-Lite supports BigQuery, Snowflake, and SQLite. Using Execution Accuracy (EX) as the metric, our method achieves EX scores of 31.26 on Spider 2.0-Snow and 30.35 on Spider 2.0-Lite with the $\texttt{o1-preview}$ model, outperforming all other methods.
+</div>
+
+
+
+<h3 id="-spider-20-snow-leaderboard">🧊 Spider 2.0-Snow Leaderboard<a hidden class="anchor" aria-hidden="true" href="#-spider-20-snow-leaderboard">#</a></h3>
+<div style="text-align: center;">
+    <table>
+  <thead>
+      <tr>
+          <th>Rank</th>
+          <th>Date</th>
+          <th>Method</th>
+          <th>Score</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>1</td>
+          <td>Jan 28, 2025</td>
+          <td>🚀<strong>ReFoRCE</strong> + o1-preview</td>
+          <td><strong>31.26</strong></td>
+      </tr>
+      <tr>
+          <td>2</td>
+          <td>Mar 8, 2025</td>
+          <td>Spider-Agent + Claude-3.7-Sonnet-20250219</td>
+          <td>24.50</td>
+      </tr>
+      <tr>
+          <td>3</td>
+          <td>Mar 16, 2025</td>
+          <td>Spider-Agent + Claude-3.7-Sonnet-20250219-Thinking</td>
+          <td>24.31</td>
+      </tr>
+      <tr>
+          <td>4</td>
+          <td>Nov 30, 2024</td>
+          <td>Spider-Agent + o1-preview</td>
+          <td>23.58</td>
+      </tr>
+      <tr>
+          <td>5</td>
+          <td>Feb 11, 2025</td>
+          <td>Spider-Agent + o1-2024-12-17</td>
+          <td>23.21</td>
+      </tr>
+      <tr>
+          <td>6</td>
+          <td>Feb 1, 2025</td>
+          <td>Spider-Agent + o3-mini-2025-01-31</td>
+          <td>19.20</td>
+      </tr>
+      <tr>
+          <td>7</td>
+          <td>Mar 7, 2025</td>
+          <td>Spider-Agent + Claude-3.5-Sonnet-20241022</td>
+          <td>19.01</td>
+      </tr>
+      <tr>
+          <td>8</td>
+          <td>Feb 10, 2025</td>
+          <td>Spider-Agent + Claude-3.5-Sonnet-20241022</td>
+          <td>15.54</td>
+      </tr>
+      <tr>
+          <td>9</td>
+          <td>Mar 13, 2025</td>
+          <td>Spider-Agent + Gemini-2.0-Pro</td>
+          <td>13.89</td>
+      </tr>
+      <tr>
+          <td>10</td>
+          <td>Nov 30, 2024</td>
+          <td>Spider-Agent + GPT-4o-2024-11-20</td>
+          <td>12.98</td>
+      </tr>
+  </tbody>
+</table>
+
+</div>
+
+<h3 id="-spider-20-lite-leaderboard">💡 Spider 2.0-Lite Leaderboard<a hidden class="anchor" aria-hidden="true" href="#-spider-20-lite-leaderboard">#</a></h3>
+<div style="text-align: center;">
+    <table>
+  <thead>
+      <tr>
+          <th>Rank</th>
+          <th>Date</th>
+          <th>Method</th>
+          <th>Score</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>1</td>
+          <td>Jan 28, 2025</td>
+          <td>🚀<strong>ReFoRCE</strong> + o1-preview</td>
+          <td><strong>30.35</strong></td>
+      </tr>
+      <tr>
+          <td>2</td>
+          <td>Mar 16, 2025</td>
+          <td>Spider-Agent + Claude-3.7-Sonnet-20250219-Thinking</td>
+          <td>28.52</td>
+      </tr>
+      <tr>
+          <td>3</td>
+          <td>Mar 8, 2025</td>
+          <td>Spider-Agent + Claude-3.7-Sonnet-20250219</td>
+          <td>25.41</td>
+      </tr>
+      <tr>
+          <td>4</td>
+          <td>Mar 28, 2025</td>
+          <td>LinkAlign + DeepSeek-V3</td>
+          <td>24.86</td>
+      </tr>
+      <tr>
+          <td>5</td>
+          <td>Feb 10, 2025</td>
+          <td>Spider-Agent + o3-mini-2025-01-31</td>
+          <td>23.40</td>
+      </tr>
+      <tr>
+          <td>6</td>
+          <td>Nov 30, 2024</td>
+          <td>Spider-Agent + o1-preview</td>
+          <td>23.03</td>
+      </tr>
+      <tr>
+          <td>7</td>
+          <td>Mar 10, 2025</td>
+          <td>Spider-Agent + DeepSeek-R1</td>
+          <td>13.71</td>
+      </tr>
+      <tr>
+          <td>8</td>
+          <td>Feb 10, 2025</td>
+          <td>Spider-Agent + GPT-4o-2024-11-20</td>
+          <td>13.16</td>
+      </tr>
+      <tr>
+          <td>9</td>
+          <td>Mar 13, 2025</td>
+          <td>Spider-Agent + QwQ-32B</td>
+          <td>11.33</td>
+      </tr>
+      <tr>
+          <td>10</td>
+          <td>Dec 31, 2024</td>
+          <td>Duo</td>
+          <td>8.96</td>
+      </tr>
+  </tbody>
+</table>
+
+</div>
+
+<div style="text-align: justify;">
+    <em>Spider 2.0-Snow and Spider 2.0-Lite Leaderboards, April 2025.</em>
+</div>
+
+
+
+<h3 id="case-study">Case Study<a hidden class="anchor" aria-hidden="true" href="#case-study">#</a></h3>
+<div style="text-align: justify;">
+    Here is an example where ReFoRCE succeeds. The question is the same as in Figure 2, where Spider Agent struggles with handling nested columns in the Snowflake dialect. ReFoRCE first produces the expected answer format, titled &ldquo;System,Most_Frequent_License&rdquo;. Compared to Spider Agent&rsquo;s answer, &ldquo;System,LICENSENAME,LICENSECOUNT&rdquo;, ReFoRCE&rsquo;s output aligns better with the question description. During the column exploration stage, ReFoRCE receives SQL execution feedback starting with simpler queries and progressing to more complex ones. Even if there are errors, it can self-correct to avoid the issues seen in Spider Agent&rsquo;s output. After gaining sufficient knowledge about the database, ReFoRCE generates the final answer and verifies the executed results through its self-refinement and self-consistency workflow.
+</div>
+
+
+
+<style>
+  .gray-text {
+    color: #808080;
+  }
+</style>
+
+
+  <figure>
+	  <div style="display: grid; place-items: center;">
+      <img src="img/example_reforce.png" alt="reforce" style="width: 120%; height: auto;">
+      <figcaption style="font-size: 16px;" class="gray-text">Figure 4: A successful case for ReFoRCE.</figcaption>
+    </div>
+  </figure>
+
+
+<h2 id="get-started">Get started<a hidden class="anchor" aria-hidden="true" href="#get-started">#</a></h2>
+<div style="text-align: justify;">
+    For more details, please see <a href="https://arxiv.org/abs/2502.00675">our paper</a>. We also invite you to explore <a href="https://github.com/hao-ai-lab/ReFoRCE">our codebase</a>!
+</div>
+
+
+
+<h2 id="acknowledgements">Acknowledgements<a hidden class="anchor" aria-hidden="true" href="#acknowledgements">#</a></h2>
+<div style="text-align: justify;">
+    This work is jointly developed with <a href="https://www.snowflake.com/en/product/ai/ai-research/">Snowflake AI Research Team</a>.
+</div>
+
+
+
+<h2 id="citation">Citation<a hidden class="anchor" aria-hidden="true" href="#citation">#</a></h2>
+<pre tabindex="0"><code>@article{deng2025reforce,
+  title={ReFoRCE: A Text-to-SQL Agent with Self-Refinement, Format Restriction, and Column Exploration},
+  author={Deng, Minghang and Ramachandran, Ashwin and Xu, Canwen and Hu, Lanxiang and Yao, Zhewei and Datta, Anupam and Zhang, Hao},
+  journal={arXiv preprint arXiv:2502.00675},
+  year={2025}
+}
+</code></pre>
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+    <span>&copy; 2026 Game AI Lab @ ZGCA Powered by <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a></span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+</body>
+
+</html>

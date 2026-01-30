@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/custom.css">
+<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+<link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
+<script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+
+
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>FastWan: Generating a 5-Second Video in 5 Seconds via Sparse Distillation | Game AI Lab @ ZGCA</title>
+<meta name="keywords" content="">
+<meta name="description" content="
+
+
+    
+        
+          
+        
+    
+
+    
+        
+          
+        
+    
+    
+    
+        
+          
+        
+    
+
+    
+        
+          
+        
+    
+
+    
+      
+        
+      
+    
+
+    
+      
+        
+      
+    
+
+
+TL;DR: We introduce FastWan, a family of video generation models trained via a new recipe we term as “sparse distillation”. Powered by FastVideo, FastWan2.1-1.3B end2end generates a 5-second 480P video in 5 seconds (denoising time 1 second) on a single H200 and 21 seconds (denoising time 2.8 seconds) on a single RTX 4090. FastWan2.2-5B generates a 5-second 720P video in 16 seconds on a single H200. All resources — model weights, training recipe, and dataset — are released under the Apache-2.0 license.">
+<meta name="author" content="FastVideo Team">
+<link rel="canonical" href="http://localhost:1313/blogs/fastvideo_post_training/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.485083f9d901fb80fd662f83966224da3c297d5451a572c18a3b4b48afb80565.css" integrity="sha256-SFCD&#43;dkB&#43;4D9Zi&#43;DlmIk2jwpfVRRpXLBijtLSK&#43;4BWU=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="http://localhost:1313/blogs/fastvideo_post_training/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(255, 255, 255);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-T4DXGLCH1D"></script>
+      <script>
+        var doNotTrack = false;
+        if ( true ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-T4DXGLCH1D');
+        }
+      </script><meta property="og:title" content="FastWan: Generating a 5-Second Video in 5 Seconds via Sparse Distillation" />
+<meta property="og:description" content="
+
+
+    
+        
+          
+        
+    
+
+    
+        
+          
+        
+    
+    
+    
+        
+          
+        
+    
+
+    
+        
+          
+        
+    
+
+    
+      
+        
+      
+    
+
+    
+      
+        
+      
+    
+
+
+TL;DR: We introduce FastWan, a family of video generation models trained via a new recipe we term as “sparse distillation”. Powered by FastVideo, FastWan2.1-1.3B end2end generates a 5-second 480P video in 5 seconds (denoising time 1 second) on a single H200 and 21 seconds (denoising time 2.8 seconds) on a single RTX 4090. FastWan2.2-5B generates a 5-second 720P video in 16 seconds on a single H200. All resources — model weights, training recipe, and dataset — are released under the Apache-2.0 license." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://localhost:1313/blogs/fastvideo_post_training/" />
+<meta property="og:image" content="http://localhost:1313/img/fastwan/fastwan-teaser.gif" /><meta property="article:section" content="blogs" />
+<meta property="article:published_time" content="2025-08-04T11:00:00-08:00" />
+<meta property="article:modified_time" content="2025-08-04T11:00:00-08:00" />
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content="http://localhost:1313/img/fastwan/fastwan-teaser.gif" />
+<meta name="twitter:title" content="FastWan: Generating a 5-Second Video in 5 Seconds via Sparse Distillation"/>
+<meta name="twitter:description" content="
+
+
+    
+        
+          
+        
+    
+
+    
+        
+          
+        
+    
+    
+    
+        
+          
+        
+    
+
+    
+        
+          
+        
+    
+
+    
+      
+        
+      
+    
+
+    
+      
+        
+      
+    
+
+
+TL;DR: We introduce FastWan, a family of video generation models trained via a new recipe we term as “sparse distillation”. Powered by FastVideo, FastWan2.1-1.3B end2end generates a 5-second 480P video in 5 seconds (denoising time 1 second) on a single H200 and 21 seconds (denoising time 2.8 seconds) on a single RTX 4090. FastWan2.2-5B generates a 5-second 720P video in 16 seconds on a single H200. All resources — model weights, training recipe, and dataset — are released under the Apache-2.0 license."/>
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Blogs",
+      "item": "http://localhost:1313/blogs/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "FastWan: Generating a 5-Second Video in 5 Seconds via Sparse Distillation",
+      "item": "http://localhost:1313/blogs/fastvideo_post_training/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "FastWan: Generating a 5-Second Video in 5 Seconds via Sparse Distillation",
+  "name": "FastWan: Generating a 5-Second Video in 5 Seconds via Sparse Distillation",
+  "description": " TL;DR: We introduce FastWan, a family of video generation models trained via a new recipe we term as “sparse distillation”. Powered by FastVideo, FastWan2.1-1.3B end2end generates a 5-second 480P video in 5 seconds (denoising time 1 second) on a single H200 and 21 seconds (denoising time 2.8 seconds) on a single RTX 4090. FastWan2.2-5B generates a 5-second 720P video in 16 seconds on a single H200. All resources — model weights, training recipe, and dataset — are released under the Apache-2.0 license.\n",
+  "keywords": [
+    
+  ],
+  "articleBody": " TL;DR: We introduce FastWan, a family of video generation models trained via a new recipe we term as “sparse distillation”. Powered by FastVideo, FastWan2.1-1.3B end2end generates a 5-second 480P video in 5 seconds (denoising time 1 second) on a single H200 and 21 seconds (denoising time 2.8 seconds) on a single RTX 4090. FastWan2.2-5B generates a 5-second 720P video in 16 seconds on a single H200. All resources — model weights, training recipe, and dataset — are released under the Apache-2.0 license.\nHow Fast is FastWan? Below, we demonstrate how each module accelerates the DiT denoising time (without text encoder and vae) on a single H200 GPU.\nModules Wan 2.2 5B 720P Wan2.1 14B 720P Wan2.1 1.3B 480P FA2 157.21s 1746.5s 95.21s FA2 + DMD 4.67s 52s 2.88s FA3+DMD 3.65s 37.87s 2.14s FA3 + DMD + torch compile 2.64s 29.5s 1.49s VSA + DMD + torch compile – 13s 0.98s Table 1: DiT denoising time comparisons of different methods. All numbers can be reproduced with this script. Online Demo using FastVideo 🚀🚀👉 Try our demo now! Our demo is served on 16 H200s generously provided by GMI Cloud.\nTry FastWan Locally! FastWan is runnable on a wide range of hardware including Nvidia H100, H200, 4090, and Apple Sicicon. Check out FastVideo to get started.\nModels and Recipes With this blog, we are releasing the following models and their recipes:\nModel Sparse Distillation Dataset FastWan2.1-T2V-1.3B Recipe FastVideo Synthetic Wan2.1 480P FastWan2.1-T2V-14B-Preview Coming soon! FastVideo Synthetic Wan2.1 720P FastWan2.2-TI2V-5B-FullAttn-Diffusers Recipe FastVideo Synthetic Wan2.2 720P Table 2: FastWan release assets. For FastWan2.2-TI2V-5B-FullAttn, since its sequence length is short (~20K), it does not benifit much from sparse attention. We only train it with DMD and full attention. We are actively working on applying sparse distillation to 14B models for both Wan2.1 and Wan2.2. Follow our progress at our Github, Slack and Discord!\nSparse Distillation: Making Video Generation Go Brrrr Video diffusion models are incredibly powerful, but they’ve long been held back by two major bottlenecks:\nThe huge number of denoising steps needed to generate a video. The quadratic cost of attention when handling long sequences — which are unavoidable for high-resolution videos. Taking Wan2.1-14B as an example, the models run for 50 diffusion steps, and generating just a 5-second 720P video involves processing over 80K tokens. Even worse, attention operations can eat up more than 85% of total inference time. Sparse distillation is our core innovation in FastWan — the first method to jointly train sparse attention and denoising step distillation in a unified framework. At its heart, sparse distillation answers a fundamental question: Can we retain the speedups from sparse attention while applying extreme diffusion compression (e.g., 3 steps instead of 50)? Prior work says no — and in the following sections we show why that answer changes with Video Sparse Attention (VSA).\nWhy Existing Sparse Attention Fails Under Distillation Most prior sparse attention methods (e.g., STA, SVG) rely on redundancy in multi-step denoising to prune attention maps. They often sparsify only late-stage denoising steps and retain full attention in early steps. However, when distillation compresses 50 steps into 1–4 steps, there’s no “later stage” to sparsify — and the redundancy they depend on vanishes. As a result, these sparse patterns no longer hold up. Our preliminary experiments confirm that existing sparse attention schemes degrade sharply under sub-10 step setups. This is a critical limitation. While sparse attention alone can yield up to 3× speedup, distillation offers more than 20× gains. We argue that to make sparse attention truly effective and production-ready, it must be compatible with training and distillation.\nWhy Video Sparse Attention is Compatible With Distillation Video Sparse Attention is a sparse attention kernel we developed that learns to dynamically identify important tokens in the sequence. Rather than relying on training-free techniques such as profiling or heuristics, VSA can directly replace FlashAttention during training to learn data-dependent sparsity while minimizing quality degradation. During step-distillation, as the student model learns to denoise in fewer steps, VSA does not need to rely on redundancy in multi-step denoising to prune attention maps and can instead directly learn and adjust to new sparse patterns, allowing VSA to be fully compatible with distillation techniques. To our knowledge, VSA is the first sparse attention mechanism to be fully compatible with distillation (we even train VSA together with distillation)! We will be releasing a technical blog on VSA next week, so stay tuned!\nHow Sparse Distillation Works Building upon Video Sparse Attention (VSA), we propose sparse distillation, a post-training technique that combines sparse attention training and step-distillation. Figure 1 shows an overview of sparse distillation.\nFigure 1: Sparse Distillation. The student model (FastWan2.1) uses video sparse attention (VSA) during generation, while both the real and fake score networks use full attention. This allows the student to benefit from efficient sparse computation, while leveraging full-attention supervision during training.\nThe core idea of sparse distillation is to teach a few-step and sparse student model to match the distribution from a full-step and dense teacher. When applying sparse distillation with VSA and Distribution Matching Distillation, this is done through three components:\na few-step and sparse student network with VSA (trainable). a real score network (frozen, full attention). a fake score network (trainable, full attention). All three components are initialized with Wan2.1. During training, the sparse-distilled student takes a noisy video input and performs one denoising step with VSA, producing the current output. This output is then noised again and passed to both the real and fake score functions, each of which performs one denoising step under full attention. The outputs from these two branches define the real and fake score, whose difference forms the distribution matching gradient that is backpropagated to improve the student. In parallel, the fake score model is updated via a diffusion loss on the student outputs. Importantly, while the student model adopts video sparse attention (VSA) for efficiency, both the real and fake score functions remain full-attention to ensure high-fidelity supervision during training. This separation allows us to decouple runtime acceleration (in the student) from distillation quality (in the score estimators), making sparse attention compatible with aggressive step reduction. More broadly, since sparse attention is only applied to the student, it remains fully compatible with any distillation method, such as consistency distillation, progressive distillation, or GAN-based distillation loss.\nDistillation Details High-quality data is critical for any training recipe, especially in the context of diffusion models. However, it is extremely challenging for academic teams to access video data that is both comparable in quality to Wan’s proprietary post-training data and license-friendly. Collecting data independently often results in lower quality, which can actually degrade generation performance—even when training with full attention. To address this, we choose to generate our own synthetic dataset using high-quality Wan models. Specifically, we use Wan2.1-T2V-14B to produce 600k 480P videos and 250k 720P videos; and Wan2.2-TI2V-5B to produce 32k videos. All data is released under an open license to facilitate reproducibility and community research (see Artifact Release below).\nSparse distillation with DMD requires fitting three large 14B models into GPU memory: the student model, the trainable fake score model, and the frozen real score model. Two of these models (student and fake score) are actively trained and thus require both optimizer states and gradient storage, making memory efficiency a major challenge—especially given the long sequence lengths involved. To address this, we wrap all three models with FSDP2, enabling parameter sharding across GPUs to significantly reduce memory overhead. We also apply activation checkpointing to further reduce high activation memory caused by long sequence length. Careful attention is paid to which models require gradients and which can remain in inference mode during different stages of distillation (e.g., updating the student vs. updating the fake score model). In addition, we incorporate gradient accumulation to increase the effective batch size within constrained GPU memory budgets.\nWe perform sparse distillation for Wan2.1-T2V-1.3B on 64 H200 GPUs for 4k steps, totaling 768 GPU hours. Our data, training recipe and even slurm script are released. With a cloud pricing of \\$3.39/H200/hour, you can reproduce FastWan2.1-T2V-1.3B with a \\$2603 budget with FastVideo.\nAcknowledgement We thank Anyscale, MBZUAI, and GMI Cloud for supporting the development and release of FastWan. We are especially grateful to the developers of the Wan series, whose work laid the foundation for our advancements. Our implementation of DMD distillation and Video Sparse Attention would not be possible without the effort from ThunderKittens, Triton, DMD2 and CausVid.\nThe Team Meet the team behind FastWan and FastVideo:\nWill Lin, Yongqi Chen, Peiyuan Zhang: Co-Leads, Sparse Distillation Recipe, VSA, Training Pipeline, Distillation experiments Matthew Noto: Implemented live serving Gradio demo, added Apple Silicon support Kevin Lin: CI/CD, Tests, Comfyui, demo video and Animations Wei Zhou: Added Wan2.1, Wan2.2 Wenxuan Tan: Add Lora inference and training support Jinzhe Pan: Improve FastVideo architecture Richard Liaw: Advisor Yusuf Ozuysal: Advisor Hao Zhang: Advisor Citation If you use FastWan for your research, please cite our work:\n@software{fastvideo2024, title = {FastVideo: A Unified Framework for Accelerated Video Generation}, author = {The FastVideo Team}, url = {https://github.com/hao-ai-lab/FastVideo}, month = apr, year = {2024}, } @article{zhang2025faster, title={Faster video diffusion with trainable sparse attention}, author={Zhang, Peiyuan and Huang, Haofeng and Chen, Yongqi and Lin, Will and Liu, Zhengzhong and Stoica, Ion and Xing, Eric P and Zhang, Hao}, journal={arXiv e-prints}, pages={arXiv--2505}, year={2025} } Ready to experience lightning-fast video generation? Check out our documentation and FastVideo to get started today. Available now with native support for ComfyUI, Apple Silicon, Windows WSL, and Gradio web interface!\nThe FastVideo team continues to push the boundaries of real-time video generation. Stay tuned for more exciting developments!\n",
+  "wordCount" : "1602",
+  "inLanguage": "zh",
+  "image":"http://localhost:1313/img/fastwan/fastwan-teaser.gif","datePublished": "2025-08-04T11:00:00-08:00",
+  "dateModified": "2025-08-04T11:00:00-08:00",
+  "author":{
+    "@type": "Person",
+    "name": "FastVideo Team"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "http://localhost:1313/blogs/fastvideo_post_training/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Game AI Lab @ ZGCA",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "http://localhost:1313/favicon.ico"
+    }
+  }
+}
+</script>
+    
+    	<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<script>
+  MathJax = {
+    tex: {
+      displayMath: [['\\[', '\\]'], ['$$', '$$']],  
+      inlineMath: [['\\(', '\\)'], ['$', '$']]      
+    }
+  };
+</script>
+
+    
+</head>
+
+<body class="" id="top"><head>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="Game AI Lab @ ZGCA (Alt + H)">
+                <img id="logo-image" src="/img/HAOAILAB_LOGO-transparent.jpg" alt="Game AI Lab @ ZGCA" height="40">
+            </a>
+            <div class="logo-switches">
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                  <a href="http://localhost:1313/" title="首页">
+                      <span>首页</span>
+                  </a>
+            </li>
+            <li>
+                  <a href="http://localhost:1313/blogs/" title="新闻">
+                      <span>新闻</span>
+                  </a>
+            </li>
+            <li>
+                  <a href="http://localhost:1313/projects/" title="项目">
+                      <span>项目</span>
+                  </a>
+            </li>
+            <li>
+                  <a href="http://localhost:1313/publications/" title="论文">
+                      <span>论文</span>
+                  </a>
+            </li>
+            <li>
+                  <a href="http://localhost:1313/people/" title="成员">
+                      <span>成员</span>
+                  </a>
+            </li>
+            <li>
+                  <a href="http://localhost:1313/contact/" title="加入我们">
+                      <span>加入我们</span>
+                  </a>
+            </li>
+
+            <li style="display: flex; align-items: center; margin-left: 10px;">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+                
+                <span style="margin: 0 8px;">|</span>
+                <div class="lang-switch">
+                    <ul>
+                    <li>
+                        <a href="http://localhost:1313/en/" title="English"
+                            aria-label="English">En</a>
+                    </li>
+                    </ul>
+                </div>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<script>
+    function updateThemeAndLogo() {
+        
+        document.body.classList.toggle('dark');
+
+        
+        const isDarkTheme = document.body.classList.contains('dark');
+        const logoImage = document.getElementById('logo-image');
+        logoImage.src = isDarkTheme ? '/img/HAOAILAB_LOGO-dark-mode.png' : '/img/HAOAILAB_LOGO-transparent.jpg';
+
+        
+        const themePreference = isDarkTheme ? 'dark' : 'light';
+        localStorage.setItem('pref-theme', themePreference);
+    }
+
+    function applyCurrentThemeAndLogo() {
+        
+        const isDarkTheme = document.body.classList.contains('dark');
+
+        
+        const logoImage = document.getElementById('logo-image');
+        logoImage.src = isDarkTheme ? '/img/HAOAILAB_LOGO-dark-mode.png' : '/img/HAOAILAB_LOGO-transparent.jpg';
+    }
+
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        const themeToggleButton = document.getElementById('theme-toggle');
+        if (themeToggleButton) {
+            themeToggleButton.addEventListener('click', updateThemeAndLogo);
+        }
+
+        
+        
+        const savedTheme = localStorage.getItem('pref-theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        document.body.classList.toggle('dark', savedTheme === 'dark');
+    });
+
+    
+    const themeToggleButton = document.getElementById('theme-toggle');
+    if (themeToggleButton) {
+        themeToggleButton.addEventListener('click', () => {
+            updateThemeAndLogo(); 
+        });
+        
+        applyCurrentThemeAndLogo();
+    }
+</script>
+
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-T4DXGLCH1D"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-T4DXGLCH1D');
+</script>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      FastWan: Generating a 5-Second Video in 5 Seconds via Sparse Distillation
+    </h1>
+    <div class="post-meta"><span title='2025-08-04 11:00:00 -0800 -0800'>八月 4, 2025</span>&nbsp;·&nbsp;8 分钟&nbsp;·&nbsp;FastVideo Team
+
+</div>
+  </header> 
+  <div class="post-content"><style>
+  .badge-container {
+    display: flex;
+    flex-wrap: nowrap;         
+    gap: 60px;
+    padding-left: 30px;
+    justify-content: flex-start;
+    overflow-x: auto;          
+  }
+
+   
+  @media (max-width: 600px) {
+    .badge-container {
+      gap: 60px;
+      padding-left: 30px;
+    }
+    .badge-container a {
+      flex-shrink: 0;
+    }
+  }
+</style>
+
+<div class="badge-container">
+    
+        <a href="https://github.com/hao-ai-lab/FastVideo" target="_blank" rel="noopener noreferrer">
+          <img src="https://img.shields.io/github/stars/hao-ai-lab/FastVideo?style=social" style="transform: scale(1.5);">
+        </a>
+    
+
+    
+        <a href="https://arxiv.org/abs/2505.13389" target="_blank" rel="noopener noreferrer">
+          <img src="https://img.shields.io/badge/arXiv-2505.13389-white.svg?style=social" style="transform: scale(1.5);">
+        </a>
+    
+    
+    
+        <a href="https://fastwan.fastvideo.org/" target="_blank" rel="noopener noreferrer">
+          <img src="https://img.shields.io/badge/🎮%20demo--green.svg?style=social" style="transform: scale(1.5);">
+        </a>
+    
+
+    
+        <a href="https://huggingface.co/FastVideo" target="_blank" rel="noopener noreferrer">
+          <img src="https://img.shields.io/badge/🤗%20huggingface--green.svg?style=social" style="transform: scale(1.5);">
+        </a>
+    
+
+    
+      <a href="https://join.slack.com/t/fastvideo/shared_invite/zt-38u6p1jqe-yDI1QJOCEnbtkLoaI5bjZQ" target="_blank" rel="noopener noreferrer">
+        <img src="https://img.shields.io/badge/Slack--4A154B?style=social&logo=slack&logoColor=blue"
+            alt="Slack"
+            style="transform: scale(1.5);">
+      </a>
+    
+
+    
+      <a href="https://discord.gg/Dm8F2peD3e" target="_blank" rel="noopener noreferrer">
+        <img src="https://img.shields.io/badge/Discord-Join-5865F2?style=flat&logo=discord&logoColor=white" style="transform: scale(1.5);">
+      </a>
+    
+</div>
+
+<p><strong>TL;DR:</strong> We introduce <strong>FastWan</strong>, a family of video generation models trained via a new recipe we term as “sparse distillation”. Powered by FastVideo, FastWan2.1-1.3B end2end generates a 5-second 480P video in <strong>5 seconds</strong> (denoising time 1 second) on a single H200 and <strong>21 seconds</strong> (denoising time 2.8 seconds) on a <strong>single RTX 4090</strong>. FastWan2.2-5B generates a 5-second 720P video in <strong>16 seconds</strong> on a single H200. All resources — model weights, training recipe, and dataset — are released under the Apache-2.0 license.</p>
+<div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;">
+      <iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen" loading="eager" referrerpolicy="strict-origin-when-cross-origin" src="https://www.youtube.com/embed/AvCBPBf2o4M?autoplay=0&amp;controls=1&amp;end=0&amp;loop=0&amp;mute=0&amp;start=0" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border:0;" title="YouTube video"></iframe>
+    </div>
+
+<h3 id="how-fast-is-fastwan">How Fast is FastWan?<a hidden class="anchor" aria-hidden="true" href="#how-fast-is-fastwan">#</a></h3>
+<style>
+  .gray-text {
+    color: #808080;
+  }
+</style>
+
+
+  <img src="img/fastwan.png" alt="denoising speedup" style="width: 100%; height: auto;">
+
+
+<p>Below, we demonstrate how each module accelerates the DiT denoising time (without text encoder and vae) on a single H200 GPU.</p>
+<style>
+.gray-text {
+    color: #808080;
+}
+</style>
+
+
+<figure>
+    <div style="display: grid; place-items: center;">
+        <div style="display: flex; justify-content: center;">
+            <table>
+  <thead>
+      <tr>
+          <th style="text-align: center">Modules</th>
+          <th style="text-align: center">Wan 2.2 5B 720P</th>
+          <th style="text-align: center">Wan2.1 14B  720P</th>
+          <th style="text-align: center">Wan2.1 1.3B 480P</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td style="text-align: center"><strong>FA2</strong></td>
+          <td style="text-align: center">157.21s</td>
+          <td style="text-align: center">1746.5s</td>
+          <td style="text-align: center">95.21s</td>
+      </tr>
+      <tr>
+          <td style="text-align: center"><strong>FA2 + DMD</strong></td>
+          <td style="text-align: center">4.67s</td>
+          <td style="text-align: center">52s</td>
+          <td style="text-align: center">2.88s</td>
+      </tr>
+      <tr>
+          <td style="text-align: center"><strong>FA3+DMD</strong></td>
+          <td style="text-align: center">3.65s</td>
+          <td style="text-align: center">37.87s</td>
+          <td style="text-align: center">2.14s</td>
+      </tr>
+      <tr>
+          <td style="text-align: center"><strong>FA3 + DMD + torch compile</strong></td>
+          <td style="text-align: center">2.64s</td>
+          <td style="text-align: center">29.5s</td>
+          <td style="text-align: center">1.49s</td>
+      </tr>
+      <tr>
+          <td style="text-align: center"><strong>VSA + DMD + torch compile</strong></td>
+          <td style="text-align: center">&ndash;</td>
+          <td style="text-align: center">13s</td>
+          <td style="text-align: center">0.98s</td>
+      </tr>
+  </tbody>
+</table>
+
+        </div>
+        <figcaption style="font-size: 16px;" class="gray-text">Table 1: DiT denoising time comparisons of different methods. All numbers can be reproduced with this <a href="https://github.com/hao-ai-lab/FastVideo/blob/main/scripts/inference/v1_inference_wan_VSA_DMD.sh">script</a>.</figcaption>
+    </div>
+</figure>
+
+
+<h3 id="online-demo-using-fastvideo">Online Demo using FastVideo<a hidden class="anchor" aria-hidden="true" href="#online-demo-using-fastvideo">#</a></h3>
+<p>🚀🚀👉 Try our <a href="https://fastwan.fastvideo.org/">demo</a> now! Our demo is served on 16 H200s generously provided by <a href="https://www.gmicloud.ai/">GMI Cloud</a>.</p>
+<style>
+  .gray-text {
+    color: #808080;
+  }
+</style>
+
+
+  <img src="img/demo.png" alt="screenshot of demo" style="width: 100%; height: auto;">
+
+
+<h3 id="try-fastwan-locally">Try FastWan Locally!<a hidden class="anchor" aria-hidden="true" href="#try-fastwan-locally">#</a></h3>
+<p>FastWan is runnable on a wide range of hardware including Nvidia H100, H200, 4090, and Apple Sicicon. Check out  <a href="https://github.com/hao-ai-lab/FastVideo/tree/main?tab=readme-ov-file#key-features">FastVideo</a> to get started.</p>
+<!-- We list below the VRAM needed for the 1.3B and 5B models under variable resolution. 
+
+#### FastWan2.1-T2V-1.3B
+[VRAM v.s. Model size v.s. Resolution Table]
+#### FastWan2.2-TI2V-5B -->
+<h3 id="models-and-recipes">Models and Recipes<a hidden class="anchor" aria-hidden="true" href="#models-and-recipes">#</a></h3>
+<p>With this blog, we are releasing the following models and their recipes:</p>
+<style>
+.gray-text {
+    color: #808080;
+}
+</style>
+
+
+<figure>
+    <div style="display: grid; place-items: center;">
+        <div style="display: flex; justify-content: center;">
+            <table>
+  <thead>
+      <tr>
+          <th style="text-align: center">Model</th>
+          <th style="text-align: center">Sparse Distillation</th>
+          <th style="text-align: center">Dataset</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td style="text-align: center"><a href="https://huggingface.co/FastVideo/FastWan2.1-T2V-1.3B-Diffusers">FastWan2.1-T2V-1.3B</a></td>
+          <td style="text-align: center"><a href="https://github.com/hao-ai-lab/FastVideo/tree/main/examples/distill/Wan2.1-T2V/Wan-Syn-Data-480P">Recipe</a></td>
+          <td style="text-align: center"><a href="https://huggingface.co/datasets/FastVideo/Wan-Syn_77x448x832_600k">FastVideo Synthetic Wan2.1 480P</a></td>
+      </tr>
+      <tr>
+          <td style="text-align: center"><a href="https://huggingface.co/FastVideo/FastWan2.1-T2V-14B-Diffusers">FastWan2.1-T2V-14B-Preview</a></td>
+          <td style="text-align: center">Coming soon!</td>
+          <td style="text-align: center"><a href="https://huggingface.co/datasets/FastVideo/Wan-Syn_77x768x1280_250k">FastVideo Synthetic Wan2.1 720P</a></td>
+      </tr>
+      <tr>
+          <td style="text-align: center"><a href="https://huggingface.co/FastVideo/FastWan2.2-TI2V-5B-FullAttn-Diffusers">FastWan2.2-TI2V-5B-FullAttn-Diffusers</a></td>
+          <td style="text-align: center"><a href="https://github.com/hao-ai-lab/FastVideo/tree/main/examples/distill/Wan2.2-TI2V-5B-Diffusers/Data-free">Recipe</a></td>
+          <td style="text-align: center"><a href="https://huggingface.co/datasets/FastVideo/Wan2.2-Syn-121x704x1280_32k">FastVideo Synthetic Wan2.2 720P</a></td>
+      </tr>
+  </tbody>
+</table>
+
+        </div>
+        <figcaption style="font-size: 16px;" class="gray-text">Table 2: FastWan release assets.</figcaption>
+    </div>
+</figure>
+
+
+<p>For FastWan2.2-TI2V-5B-FullAttn, since its sequence length is short (~20K), it does not benifit much from sparse attention. We only train it with DMD and full attention. We are actively working on applying sparse distillation to 14B models for both Wan2.1 and Wan2.2. Follow our progress at our <a href="https://github.com/hao-ai-lab/FastVideo">Github</a>, <a href="https://join.slack.com/t/fastvideo/shared_invite/zt-38u6p1jqe-yDI1QJOCEnbtkLoaI5bjZQ">Slack</a> and <a href="https://discord.gg/Dm8F2peD3e">Discord</a>!</p>
+<h2 id="sparse-distillation-making-video-generation-go-brrrr">Sparse Distillation: Making Video Generation Go Brrrr<a hidden class="anchor" aria-hidden="true" href="#sparse-distillation-making-video-generation-go-brrrr">#</a></h2>
+<p>Video diffusion models are incredibly powerful, but they&rsquo;ve long been held back by two major bottlenecks:</p>
+<ol>
+<li>The huge number of denoising steps needed to generate a video.</li>
+<li>The quadratic cost of attention when handling long sequences — which are unavoidable for high-resolution videos. Taking Wan2.1-14B as an example, the models run for 50 diffusion steps, and generating just a 5-second 720P video involves processing over 80K tokens. Even worse, attention operations can eat up more than 85% of total inference time.</li>
+</ol>
+<p>Sparse distillation is our core innovation in FastWan — the first method to <strong>jointly train sparse attention and denoising step distillation in a unified framework</strong>. At its heart, sparse distillation answers a fundamental question: <em>Can we retain the speedups from sparse attention while applying extreme diffusion compression (e.g., 3 steps instead of 50)?</em> Prior work says no — and in the following sections we show why that answer changes with Video Sparse Attention (VSA).</p>
+<h3 id="why-existing-sparse-attention-fails-under-distillation">Why Existing Sparse Attention Fails Under Distillation<a hidden class="anchor" aria-hidden="true" href="#why-existing-sparse-attention-fails-under-distillation">#</a></h3>
+<p>Most prior sparse attention methods (e.g., <a href="https://arxiv.org/pdf/2502.04507">STA</a>, <a href="https://svg-project.github.io/">SVG</a>) rely on redundancy in multi-step denoising to prune attention maps. They often sparsify only late-stage denoising steps and retain full attention in early steps. However, when distillation compresses 50 steps into 1–4 steps, there’s no “later stage” to sparsify — and the redundancy they depend on vanishes. As a result, these sparse patterns no longer hold up. Our preliminary experiments confirm that existing sparse attention schemes degrade sharply under sub-10 step setups. This is a critical limitation. While sparse attention alone can yield up to 3× speedup, distillation offers more than 20× gains. We argue that to make sparse attention truly effective and production-ready, it must be compatible with training and distillation.</p>
+<h3 id="why-video-sparse-attention-is-compatible-with-distillation">Why Video Sparse Attention is Compatible With Distillation<a hidden class="anchor" aria-hidden="true" href="#why-video-sparse-attention-is-compatible-with-distillation">#</a></h3>
+<p><a href="https://arxiv.org/pdf/2505.13389">Video Sparse Attention</a> is a sparse attention kernel we developed that learns to dynamically identify important tokens in the sequence. Rather than relying on training-free techniques such as profiling or heuristics, VSA can directly replace <a href="https://github.com/Dao-AILab/flash-attention/tree/main">FlashAttention</a> during training to learn data-dependent sparsity while minimizing quality degradation. During step-distillation, as the student model learns to denoise in fewer steps, VSA does not need to rely on redundancy in multi-step denoising to prune attention maps and can instead directly learn and adjust to new sparse patterns, allowing VSA to be fully compatible with distillation techniques. <strong>To our knowledge, VSA is the first sparse attention mechanism to be fully compatible with distillation</strong> (we even train VSA together with distillation)! We will be releasing a technical blog on VSA next week, so stay tuned!</p>
+<h3 id="how-sparse-distillation-works">How Sparse Distillation Works<a hidden class="anchor" aria-hidden="true" href="#how-sparse-distillation-works">#</a></h3>
+<p>Building upon Video Sparse Attention (VSA), we propose <strong>sparse distillation</strong>, a post-training technique that combines sparse attention training and step-distillation. Figure 1 shows an overview of sparse distillation.</p>
+<style>
+  .gray-text {
+    color: #808080;
+  }
+</style>
+
+
+  <img src="img/overview.png" alt="sparse distillation overview" style="width: 100%; height: auto;">
+
+
+<p><strong>Figure 1</strong>: Sparse Distillation. The student model (FastWan2.1) uses <strong>video sparse attention (VSA)</strong> during generation, while both the real and fake score networks use <strong>full attention</strong>. This allows the student to benefit from efficient sparse computation, while leveraging full-attention supervision during training.</p>
+<hr>
+<p>The core idea of sparse distillation is to teach a few-step and sparse student model to match the <em>distribution</em> from a full-step and dense teacher. When applying sparse distillation with VSA and <a href="https://tianweiy.github.io/dmd2/">Distribution Matching Distillation</a>, this is done through three components:</p>
+<ol>
+<li>a few-step and sparse student network with VSA (trainable).</li>
+<li>a real score network (frozen, full attention).</li>
+<li>a fake score network (trainable, full attention).</li>
+</ol>
+<p>All three components are initialized with Wan2.1. During training, the sparse-distilled student takes a noisy video input and performs one denoising step with VSA, producing the current output. This output is then noised again and passed to both the real and fake score functions, each of which performs one denoising step under full attention. The outputs from these two branches define the <strong>real and fake score</strong>, whose difference forms the <strong>distribution matching gradient</strong> that is backpropagated to improve the student. In parallel, the fake score model is updated via a diffusion loss on the student outputs.
+Importantly, while the student model adopts <strong>video sparse attention (VSA)</strong> for efficiency, both the real and fake score functions remain full-attention to ensure high-fidelity supervision during training. This separation allows us to decouple runtime acceleration (in the student) from distillation quality (in the score estimators), making sparse attention compatible with aggressive step reduction. More broadly, since sparse attention is only applied to the student, it remains fully compatible with any distillation method, such as consistency distillation, progressive distillation, or GAN-based distillation loss.</p>
+<h2 id="distillation-details">Distillation Details<a hidden class="anchor" aria-hidden="true" href="#distillation-details">#</a></h2>
+<p>High-quality data is critical for any training recipe, especially in the context of diffusion models. However, it is extremely challenging for academic teams to access video data that is both comparable in quality to Wan’s proprietary post-training data and license-friendly. Collecting data independently often results in lower quality, which can actually degrade generation performance—even when training with full attention. To address this, we choose to generate our own <strong>synthetic dataset</strong> using high-quality Wan models. Specifically, we use <strong>Wan2.1-T2V-14B</strong>  to produce 600k 480P videos and 250k 720P videos; and <strong>Wan2.2-TI2V-5B</strong> to produce 32k videos. All data is released under an open license to facilitate reproducibility and community research (see Artifact Release below).</p>
+<p>Sparse distillation with DMD requires fitting three large 14B models into GPU memory: the student model, the trainable fake score model, and the frozen real score model. Two of these models (student and fake score) are actively trained and thus require both optimizer states and gradient storage, making memory efficiency a major challenge—especially given the long sequence lengths involved. To address this, we wrap all three models with FSDP2, enabling parameter sharding across GPUs to significantly reduce memory overhead. We also apply activation checkpointing to further reduce high activation memory caused by long sequence length. Careful attention is paid to which models require gradients and which can remain in inference mode during different stages of distillation (e.g., updating the student vs. updating the fake score model). In addition, we incorporate gradient accumulation to increase the effective batch size within constrained GPU memory budgets.</p>
+<p>We perform sparse distillation for Wan2.1-T2V-1.3B on 64 H200 GPUs for 4k steps, totaling 768 GPU hours. Our data, training recipe and even slurm script are released. With a cloud pricing of \$3.39/H200/hour, you can reproduce FastWan2.1-T2V-1.3B with a \$2603 budget with FastVideo.</p>
+<h2 id="acknowledgement">Acknowledgement<a hidden class="anchor" aria-hidden="true" href="#acknowledgement">#</a></h2>
+<p>We thank <a href="https://www.anyscale.com/">Anyscale</a>, <a href="https://mbzuai.ac.ae/">MBZUAI</a>, and <a href="https://www.gmicloud.ai/">GMI Cloud</a> for supporting the development and release of FastWan. We are especially grateful to the developers of the <a href="https://github.com/Wan-Video">Wan series</a>, whose work laid the foundation for our advancements. Our implementation of DMD distillation and Video Sparse Attention would not be possible without the effort from <a href="https://github.com/HazyResearch/ThunderKittens">ThunderKittens</a>, <a href="https://github.com/triton-lang/triton">Triton</a>, <a href="https://github.com/tianweiy/DMD2">DMD2</a> and <a href="https://github.com/tianweiy/CausVid">CausVid</a>.</p>
+<h2 id="the-team">The Team<a hidden class="anchor" aria-hidden="true" href="#the-team">#</a></h2>
+<p>Meet the team behind FastWan and FastVideo:</p>
+<ul>
+<li><strong>Will Lin, Yongqi Chen, Peiyuan Zhang</strong>: Co-Leads, Sparse Distillation Recipe, VSA, Training Pipeline, Distillation experiments</li>
+<li><strong>Matthew Noto</strong>: Implemented live serving Gradio demo, added Apple Silicon support</li>
+<li><strong>Kevin Lin</strong>: CI/CD, Tests, Comfyui, demo video and Animations</li>
+<li><strong>Wei Zhou</strong>: Added Wan2.1, Wan2.2</li>
+<li><strong>Wenxuan Tan</strong>: Add Lora inference and training support</li>
+<li><strong>Jinzhe Pan</strong>: Improve FastVideo architecture</li>
+<li><strong>Richard Liaw</strong>: Advisor</li>
+<li><strong>Yusuf Ozuysal</strong>: Advisor</li>
+<li><strong>Hao Zhang</strong>: Advisor</li>
+</ul>
+<h2 id="citation">Citation<a hidden class="anchor" aria-hidden="true" href="#citation">#</a></h2>
+<p>If you use FastWan for your research, please cite our work:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bibtex" data-lang="bibtex"><span style="display:flex;"><span><span style="color:#a6e22e">@software</span>{fastvideo2024,
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">title</span>        = <span style="color:#e6db74">{FastVideo: A Unified Framework for Accelerated Video Generation}</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">author</span>       = <span style="color:#e6db74">{The FastVideo Team}</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">url</span>          = <span style="color:#e6db74">{https://github.com/hao-ai-lab/FastVideo}</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">month</span>        = apr,
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">year</span>         = <span style="color:#e6db74">{2024}</span>,
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@article</span>{zhang2025faster,
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">title</span>=<span style="color:#e6db74">{Faster video diffusion with trainable sparse attention}</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">author</span>=<span style="color:#e6db74">{Zhang, Peiyuan and Huang, Haofeng and Chen, Yongqi and Lin, Will and Liu, Zhengzhong and Stoica, Ion and Xing, Eric P and Zhang, Hao}</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">journal</span>=<span style="color:#e6db74">{arXiv e-prints}</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">pages</span>=<span style="color:#e6db74">{arXiv--2505}</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">year</span>=<span style="color:#e6db74">{2025}</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Ready to experience lightning-fast video generation? Check out our <a href="https://hao-ai-lab.github.io/FastVideo/index.html">documentation</a> and <a href="https://github.com/hao-ai-lab/FastVideo">FastVideo</a> to get started today.
+Available now with native support for ComfyUI, Apple Silicon, Windows WSL, and Gradio web interface!</p>
+<p><em>The FastVideo team continues to push the boundaries of real-time video generation. Stay tuned for more exciting developments!</em></p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+    <span>&copy; 2026 Game AI Lab @ ZGCA Powered by <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a></span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+</body>
+
+</html>

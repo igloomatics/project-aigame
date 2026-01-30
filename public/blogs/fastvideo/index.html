@@ -1,0 +1,1701 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/custom.css">
+<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+<link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
+<script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+
+
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>FastVideo V1: A Unified Framework for Accelerated Video Generation | Game AI Lab @ ZGCA</title>
+<meta name="keywords" content="">
+<meta name="description" content="
+
+
+    
+        
+          
+        
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+
+TL;DR: We are announcing FastVideo V1, a unified framework that accelerates video generation. This new version features a clean, consistent API that works across popular video models, making it easier for developers to author new models and incorporate system - or kernel - level optimizations. For example, FastVideo V1 provides 3x speedup for inference while maintaining quality by seamlessly integrating SageAttention and Teacache.">
+<meta name="author" content="FastVideo Team">
+<link rel="canonical" href="http://localhost:1313/blogs/fastvideo/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.485083f9d901fb80fd662f83966224da3c297d5451a572c18a3b4b48afb80565.css" integrity="sha256-SFCD&#43;dkB&#43;4D9Zi&#43;DlmIk2jwpfVRRpXLBijtLSK&#43;4BWU=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="http://localhost:1313/blogs/fastvideo/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(255, 255, 255);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-T4DXGLCH1D"></script>
+      <script>
+        var doNotTrack = false;
+        if ( true ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-T4DXGLCH1D');
+        }
+      </script><meta property="og:title" content="FastVideo V1: A Unified Framework for Accelerated Video Generation" />
+<meta property="og:description" content="
+
+
+    
+        
+          
+        
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+
+TL;DR: We are announcing FastVideo V1, a unified framework that accelerates video generation. This new version features a clean, consistent API that works across popular video models, making it easier for developers to author new models and incorporate system - or kernel - level optimizations. For example, FastVideo V1 provides 3x speedup for inference while maintaining quality by seamlessly integrating SageAttention and Teacache." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://localhost:1313/blogs/fastvideo/" />
+<meta property="og:image" content="http://localhost:1313/img/cover_fastvideo_v1.png" /><meta property="article:section" content="blogs" />
+<meta property="article:published_time" content="2025-04-24T11:00:00-08:00" />
+<meta property="article:modified_time" content="2025-04-24T11:00:00-08:00" />
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content="http://localhost:1313/img/cover_fastvideo_v1.png" />
+<meta name="twitter:title" content="FastVideo V1: A Unified Framework for Accelerated Video Generation"/>
+<meta name="twitter:description" content="
+
+
+    
+        
+          
+        
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+
+TL;DR: We are announcing FastVideo V1, a unified framework that accelerates video generation. This new version features a clean, consistent API that works across popular video models, making it easier for developers to author new models and incorporate system - or kernel - level optimizations. For example, FastVideo V1 provides 3x speedup for inference while maintaining quality by seamlessly integrating SageAttention and Teacache."/>
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Blogs",
+      "item": "http://localhost:1313/blogs/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "FastVideo V1: A Unified Framework for Accelerated Video Generation",
+      "item": "http://localhost:1313/blogs/fastvideo/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "FastVideo V1: A Unified Framework for Accelerated Video Generation",
+  "name": "FastVideo V1: A Unified Framework for Accelerated Video Generation",
+  "description": " TL;DR: We are announcing FastVideo V1, a unified framework that accelerates video generation. This new version features a clean, consistent API that works across popular video models, making it easier for developers to author new models and incorporate system - or kernel - level optimizations. For example, FastVideo V1 provides 3x speedup for inference while maintaining quality by seamlessly integrating SageAttention and Teacache.\n",
+  "keywords": [
+    
+  ],
+  "articleBody": " TL;DR: We are announcing FastVideo V1, a unified framework that accelerates video generation. This new version features a clean, consistent API that works across popular video models, making it easier for developers to author new models and incorporate system - or kernel - level optimizations. For example, FastVideo V1 provides 3x speedup for inference while maintaining quality by seamlessly integrating SageAttention and Teacache.\nWhat’s New Modern open-source video generation models such as HunyuanVideo and Wan2.1 have reached impressive levels of quality, creating videos comparable to closed-source models. However, it is well known that using these models for creative work still remains highly impractical. Creating a few seconds of high-quality video can take 15+ minutes even on high-end H100 GPUs using existing video generation tools such as Diffusers – and multi-GPU setups are complex if not outright impossible. As a result, there are a significant number of research teams developing cutting edge techniques to accelerate these models, such as Sliding Tile Attention, SageAttention, TeaCache, xDIT and many more.\nIn FastVideo V1, we aim to provide a platform to unify the work across the video generation ecosystem to provide highly accessible and performant video generation. FastVideo V1 offers:\nA simple, consistent API that’s easy to use and integrate A collection of model performance optimizations and techniques that can be composed with each other A clean and articulate way for model creators to define and distribute video generation models to end users If you’re a Diffusers user struggling with the 15+ minute generation times and complex multi-GPU setups, FastVideo offers a simpler alternative for state-of-the-art models like Wan2.1. You’re likely familiar with these challenges:\nDiffusers Challenge FastVideo Solution 15+ minute generation times on a single GPU 2x-3x acceleration for supported models with the same quality Complex bash scripts needed for multi-GPU use Simple num_gpus=N parameter handles everything Large memory overhead during generation Memory-efficient attention and sharding optimizations Long model loading times Up to 7x faster model loading Diffusers challenges and how FastVideo addresses them. Quick Start Requirements:\nNVIDIA GPU with CUDA 12.4 Python 3.10-3.12 We recommend using Conda or virtualenv.\npip install fastvideo Create a Python file generate_video.py and copy the following:\nfrom fastvideo import VideoGenerator def main(): generator = VideoGenerator.from_pretrained(\"Wan-AI/Wan2.1-T2V-1.3B-Diffusers\", num_gpus=1) video = generator.generate_video(\"a person walking in a forest\") if __name__ == '__main__': main() Run without any special commands:\npython generate_video.py # No torchrun or accelerate necessary We next explore key features along with this release.\nSimple, Unified Python API with Multi-GPU Support FastVideo V1 features a streamlined Python API with built-in multi-GPU support that eliminates the need for complex command-line tools or bash scripts.\nGenerating Videos: FastVideo vs Diffusers vs xDiT FastVideo Diffusers xDiT In this example, we showcase how PipelineConfig is used to configure the pipeline initialization parameters and how SamplingParam is used to configure the generation time parameters:\nfrom fastvideo import VideoGenerator, SamplingParam, PipelineConfig def main(): # Initialization config model_name = \"Wan-AI/Wan2.1-T2V-1.3B-Diffusers\" config = PipelineConfig.from_pretrained(model_name) # Can adjust any parameters # Other arguments will be set to best defaults config.num_gpus = 2 # how many GPUS to parallelize generation config.vae_config.vae_precision = \"fp32\" # Override default configurations while keeping optimal defaults for other settings generator = VideoGenerator.from_pretrained(model_name, pipeline_config=config) # Generation config param = SamplingParam.from_pretrained(model_name) # Adjust specific sampling parameters # Other arguments will be set to best defaults param.num_inference_steps=30 # higher quality param.guidance_scale=7.5 # stronger guidance param.width=1024 # Higher resolution param.height=576 # Users can also directly override any field of sampling_param using kwargs video = generator.generate_video( \"fox in the forest close-up quickly turned its head to the left\", sampling_param=param, num_inference_steps=35 # will override param.num_inference_steps ) if __name__ == '__main__': main() HuggingFace’s Diffusers library has become a standard for diffusion models, but its architecture is limited to only data parallelism and requires launching processes from the CLI using accelerate or torchrun.\nHow to use data parallelism in Diffusers: (Taken from Diffusers example here)\n# Diffusers with Accelerate: Requires CLI command and only helps for batch processing import torch from accelerate import PartialState from diffusers import DiffusionPipeline pipeline = DiffusionPipeline.from_pretrained( \"stable-diffusion-v1-5/stable-diffusion-v1-5\", torch_dtype=torch.float16, use_safetensors=True ) distributed_state = PartialState() pipeline.to(distributed_state.device) # This only distributes DIFFERENT prompts to DIFFERENT GPUs # It cannot accelerate a single video generation with distributed_state.split_between_processes([\"a dog\", \"a cat\"]) as prompt: result = pipeline(prompt).images[0] result.save(f\"result_{distributed_state.process_index}.png\") Then finally, launch from command line using accelerate:\n$ accelerate launch run_distributed.py --num_processes=2 xDiT (also known as xFusers) improves upon Diffusers by supporting tensor and sequence parallelism for the diffusion model. However, its API still requires torchrun and complicated bash scripts to configure and launch. Below is the primary example script from xDiT:\nset -x export PYTHONPATH=$PWD:$PYTHONPATH # Select the model type export MODEL_TYPE=\"Flux\" # Configuration for different model types # script, model_id, inference_step declare -A MODEL_CONFIGS=( [\"Pixart-alpha\"]=\"pixartalpha_example.py /cfs/dit/PixArt-XL-2-1024-MS 20\" [\"Pixart-sigma\"]=\"pixartsigma_example.py /cfs/dit/PixArt-Sigma-XL-2-2K-MS 20\" [\"Sd3\"]=\"sd3_example.py /cfs/dit/stable-diffusion-3-medium-diffusers 20\" [\"Flux\"]=\"flux_example.py /cfs/dit/FLUX.1-dev/ 28\" [\"HunyuanDiT\"]=\"hunyuandit_example.py /cfs/dit/HunyuanDiT-v1.2-Diffusers 50\" [\"SDXL\"]=\"sdxl_example.py /cfs/dit/stable-diffusion-xl-base-1.0 30\" ) if [[ -v MODEL_CONFIGS[$MODEL_TYPE] ]]; then IFS=' ' read -r SCRIPT MODEL_ID INFERENCE_STEP \u003c\u003c\u003c \"${MODEL_CONFIGS[$MODEL_TYPE]}\" export SCRIPT MODEL_ID INFERENCE_STEP else echo \"Invalid MODEL_TYPE: $MODEL_TYPE\" exit 1 fi mkdir -p ./results # task args TASK_ARGS=\"--height 1024 --width 1024 --no_use_resolution_binning\" # cache args # CACHE_ARGS=\"--use_teacache\" # CACHE_ARGS=\"--use_fbcache\" # On 8 gpus, pp=2, ulysses=2, ring=1, cfg_parallel=2 (split batch) N_GPUS=8 PARALLEL_ARGS=\"--pipefusion_parallel_degree 2 --ulysses_degree 2 --ring_degree 2\" # CFG_ARGS=\"--use_cfg_parallel\" # By default, num_pipeline_patch = pipefusion_degree, and you can tune this parameter to achieve optimal performance. # PIPEFUSION_ARGS=\"--num_pipeline_patch 8 \" # For high-resolution images, we use the latent output type to avoid runing the vae module. Used for measuring speed. # OUTPUT_ARGS=\"--output_type latent\" # PARALLLEL_VAE=\"--use_parallel_vae\" # Another compile option is `--use_onediff` which will use onediff's compiler. # COMPILE_FLAG=\"--use_torch_compile\" # Use this flag to quantize the T5 text encoder, which could reduce the memory usage and have no effect on the result quality. # QUANTIZE_FLAG=\"--use_fp8_t5_encoder\" # export CUDA_VISIBLE_DEVICES=4,5,6,7 torchrun --nproc_per_node=$N_GPUS ./examples/$SCRIPT \\ --model $MODEL_ID \\ $PARALLEL_ARGS \\ $TASK_ARGS \\ $PIPEFUSION_ARGS \\ $OUTPUT_ARGS \\ --num_inference_steps $INFERENCE_STEP \\ --warmup_steps 1 \\ --prompt \"brown dog laying on the ground with a metal bowl in front of him.\" \\ $CFG_ARGS \\ $PARALLLEL_VAE \\ $COMPILE_FLAG \\ $QUANTIZE_FLAG \\ $CACHE_ARGS \\ After configuring the above script, run with:\nbash examples/run.sh When num_gpus \u003e 1, FastVideo automatically applies the optimal parallelism strategy without requiring torchrun or accelerate commands. This streamlined API makes it easy to integrate FastVideo into applications, as demonstrated in our Gradio example.\nWith just a HuggingFace model identifier, FastVideo configures all pipeline components for high-quality output. For advanced users needing fine-grained control, our comprehensive API provides access to all pipeline components through customizable configuration objects that can be passed to VideoGenerator.from_pretrained().\nUsers can adjust both initialization parameters (model loading, precision) and sampling parameters (inference steps, guidance scale, dimensions) while maintaining optimal defaults for everything else. Model authors can contribute configurations for their models to our repository, making them immediately accessible with optimal settings.\nIn our roadmap, we plan to extend FastVideo V1 with training and distillation support, leveraging the same modular architecture and configuration system.\nModular Architecture with Clean Separation FastVideo provides clear separation between model architecture and implementation, similar to modern LLM inference frameworks. This allows model authors to leverage FastVideo’s distributed processing, optimized components, and parallelism strategies without rewriting their core model logic. With FastVideo’s clean architecture, researchers can implement a new optimization once and have it benefit all compatible models in the ecosystem.\nThe following snippet demonstrates how a new model might be implemented with FastVideo’s components:\nDefining New Models FastVideo from fastvideo.v1.layers.linear import QKVParallelLinear from fastvideo.v1.attention import LocalAttention from fastvideo.v1.layers.rotary_embedding import get_rope # Define model with FastVideo optimized components class CustomEncoderModel(nn.Module): def __init__(self, hidden_size=1024, num_heads=16, head_dim=64): super().__init__() # Use FastVideo's optimized layers self.qkv_proj = QKVParallelLinear( hidden_size=hidden_size, head_size=head_dim, total_num_heads=num_heads, total_num_kv_heads=num_heads ) self.rotary_emb = get_rope( head_dim, rotary_dim=head_dim, max_position=8192 ) self.attn = LocalAttention( num_heads=num_heads // get_tensor_model_parallel_world_size(), head_dim=head_dim, num_kv_heads=num_heads // get_tensor_model_parallel_world_size(), causal=True ) def forward(self, positions, hidden_states): # Simple model logic, actual implementation called depends on user configuration and available optimizations qkv, _ = self.qkv_proj(hidden_states) q, k, v = qkv.split([self.q_size, self.kv_size, self.kv_size], dim=-1) q, k = self.rotary_emb(positions, q, k) return self.attn(q, k, v) ComposablePipeline and PipelineStage Abstraction FastVideo splits the diffusion pipeline into functional and reusable stages, avoiding code duplication and enabling pipeline-level optimizations. This modular approach lets developers easily customize specific parts of the generation process while reusing standard components.\nDiffusion Pipelines: FastVideo vs Diffusers FastVideo Diffusers Each of these Stage in FastVideo can be reused by other pipelines or composed for other purposes such as training or distillation (coming soon!)\nBelow we show FastVideo’s entire file for Wan2.1 Pipeline. It is only 63 lines!\n# SPDX-License-Identifier: Apache-2.0 \"\"\" Wan video diffusion pipeline implementation. This module contains an implementation of the Wan video diffusion pipeline using the modular pipeline architecture. \"\"\" from fastvideo.v1.fastvideo_args import FastVideoArgs from fastvideo.v1.logger import init_logger from fastvideo.v1.pipelines.composed_pipeline_base import ComposedPipelineBase from fastvideo.v1.pipelines.stages import (ConditioningStage, DecodingStage, DenoisingStage, InputValidationStage, LatentPreparationStage, TextEncodingStage, TimestepPreparationStage) logger = init_logger(__name__) class WanPipeline(ComposedPipelineBase): _required_config_modules = [ \"text_encoder\", \"tokenizer\", \"vae\", \"transformer\", \"scheduler\" ] def create_pipeline_stages(self, fastvideo_args: FastVideoArgs): \"\"\"Set up pipeline stages with proper dependency injection.\"\"\" self.add_stage(stage_name=\"input_validation_stage\", stage=InputValidationStage()) self.add_stage(stage_name=\"prompt_encoding_stage\", stage=TextEncodingStage( text_encoders=[self.get_module(\"text_encoder\")], tokenizers=[self.get_module(\"tokenizer\")], )) self.add_stage(stage_name=\"conditioning_stage\", stage=ConditioningStage()) self.add_stage(stage_name=\"timestep_preparation_stage\", stage=TimestepPreparationStage( scheduler=self.get_module(\"scheduler\"))) self.add_stage(stage_name=\"latent_preparation_stage\", stage=LatentPreparationStage( scheduler=self.get_module(\"scheduler\"), transformer=self.get_module(\"transformer\"))) self.add_stage(stage_name=\"denoising_stage\", stage=DenoisingStage( transformer=self.get_module(\"transformer\"), scheduler=self.get_module(\"scheduler\"))) self.add_stage(stage_name=\"decoding_stage\", stage=DecodingStage(vae=self.get_module(\"vae\"))) EntryClass = WanPipeline In Diffusers and many other repositories, the entire pipeline is redefined for each model. In the following example from Diffusers Wan2.1, we’ve heavily pruned the pipeline code to only the forward() method. The original file is almost 600 lines long, and this is repeated for each supported type (I2V, V2V, etc.)\nclass WanPipeline(DiffusionPipeline, WanLoraLoaderMixin): # other steps ... @torch.no_grad() @replace_example_docstring(EXAMPLE_DOC_STRING) def __call__( self, prompt: Union[str, List[str]] = None, negative_prompt: Union[str, List[str]] = None, height: int = 480, width: int = 832, num_frames: int = 81, num_inference_steps: int = 50, guidance_scale: float = 5.0, num_videos_per_prompt: Optional[int] = 1, generator: Optional[Union[torch.Generator, List[torch.Generator]]] = None, latents: Optional[torch.Tensor] = None, prompt_embeds: Optional[torch.Tensor] = None, negative_prompt_embeds: Optional[torch.Tensor] = None, output_type: Optional[str] = \"np\", return_dict: bool = True, attention_kwargs: Optional[Dict[str, Any]] = None, callback_on_step_end: Optional[ Union[Callable[[int, int, Dict], None], PipelineCallback, MultiPipelineCallbacks] ] = None, callback_on_step_end_tensor_inputs: List[str] = [\"latents\"], max_sequence_length: int = 512, ): if isinstance(callback_on_step_end, (PipelineCallback, MultiPipelineCallbacks)): callback_on_step_end_tensor_inputs = callback_on_step_end.tensor_inputs # 1. Check inputs. Raise error if not correct self.check_inputs( prompt, negative_prompt, height, width, prompt_embeds, negative_prompt_embeds, callback_on_step_end_tensor_inputs, ) if num_frames % self.vae_scale_factor_temporal != 1: logger.warning( f\"`num_frames - 1` has to be divisible by {self.vae_scale_factor_temporal}. Rounding to the nearest number.\" ) num_frames = num_frames // self.vae_scale_factor_temporal * self.vae_scale_factor_temporal + 1 num_frames = max(num_frames, 1) self._guidance_scale = guidance_scale self._attention_kwargs = attention_kwargs self._current_timestep = None self._interrupt = False device = self._execution_device # 2. Define call parameters if prompt is not None and isinstance(prompt, str): batch_size = 1 elif prompt is not None and isinstance(prompt, list): batch_size = len(prompt) else: batch_size = prompt_embeds.shape[0] # 3. Encode input prompt prompt_embeds, negative_prompt_embeds = self.encode_prompt( prompt=prompt, negative_prompt=negative_prompt, do_classifier_free_guidance=self.do_classifier_free_guidance, num_videos_per_prompt=num_videos_per_prompt, prompt_embeds=prompt_embeds, negative_prompt_embeds=negative_prompt_embeds, max_sequence_length=max_sequence_length, device=device, ) transformer_dtype = self.transformer.dtype prompt_embeds = prompt_embeds.to(transformer_dtype) if negative_prompt_embeds is not None: negative_prompt_embeds = negative_prompt_embeds.to(transformer_dtype) # 4. Prepare timesteps self.scheduler.set_timesteps(num_inference_steps, device=device) timesteps = self.scheduler.timesteps # 5. Prepare latent variables num_channels_latents = self.transformer.config.in_channels latents = self.prepare_latents( batch_size * num_videos_per_prompt, num_channels_latents, height, width, num_frames, torch.float32, device, generator, latents, ) # 6. Denoising loop num_warmup_steps = len(timesteps) - num_inference_steps * self.scheduler.order self._num_timesteps = len(timesteps) with self.progress_bar(total=num_inference_steps) as progress_bar: for i, t in enumerate(timesteps): if self.interrupt: continue self._current_timestep = t latent_model_input = latents.to(transformer_dtype) timestep = t.expand(latents.shape[0]) noise_pred = self.transformer( hidden_states=latent_model_input, timestep=timestep, encoder_hidden_states=prompt_embeds, attention_kwargs=attention_kwargs, return_dict=False, )[0] if self.do_classifier_free_guidance: noise_uncond = self.transformer( hidden_states=latent_model_input, timestep=timestep, encoder_hidden_states=negative_prompt_embeds, attention_kwargs=attention_kwargs, return_dict=False, )[0] noise_pred = noise_uncond + guidance_scale * (noise_pred - noise_uncond) # compute the previous noisy sample x_t -\u003e x_t-1 latents = self.scheduler.step(noise_pred, t, latents, return_dict=False)[0] if callback_on_step_end is not None: callback_kwargs = {} for k in callback_on_step_end_tensor_inputs: callback_kwargs[k] = locals()[k] callback_outputs = callback_on_step_end(self, i, t, callback_kwargs) latents = callback_outputs.pop(\"latents\", latents) prompt_embeds = callback_outputs.pop(\"prompt_embeds\", prompt_embeds) negative_prompt_embeds = callback_outputs.pop(\"negative_prompt_embeds\", negative_prompt_embeds) # call the callback, if provided if i == len(timesteps) - 1 or ((i + 1) \u003e num_warmup_steps and (i + 1) % self.scheduler.order == 0): progress_bar.update() if XLA_AVAILABLE: xm.mark_step() self._current_timestep = None if not output_type == \"latent\": latents = latents.to(self.vae.dtype) latents_mean = ( torch.tensor(self.vae.config.latents_mean) .view(1, self.vae.config.z_dim, 1, 1, 1) .to(latents.device, latents.dtype) ) latents_std = 1.0 / torch.tensor(self.vae.config.latents_std).view(1, self.vae.config.z_dim, 1, 1, 1).to( latents.device, latents.dtype ) latents = latents / latents_std + latents_mean video = self.vae.decode(latents, return_dict=False)[0] video = self.video_processor.postprocess_video(video, output_type=output_type) else: video = latents # Offload all models self.maybe_free_model_hooks() if not return_dict: return (video,) return WanPipelineOutput(frames=video) Performance and Results Our benchmarks demonstrate that FastVideo significantly outperforms the official Wan2.1 implementation. Testing across multiple GPU configurations shows up to 3x faster video generation while maintaining the same output quality. Model loading time is reduced by up to 7x, dramatically improving startup experience. These performance gains come from transparently switching to SageAttention kernels for attention and enabling Teacache optimization.\nGetting Started To try FastVideo, visit our GitHub repository. Our documentation provides comprehensive guidance for installation, configuration, and integration.\nFor those interested in technical details:\nSliding Tile Attention blog post Developer documentation Join our Slack Community and/or Discord community to share your experiences, get help, and influence the future direction of the project!\nWhat’s Next for FastVideo? We’re actively working on expanding FastVideo’s capabilities in three key areas. We’d love to hear which of these matters most to you:\nMore model support: Which video generation models would you like to see optimized next? Training and fine-tuning: Are you interested in accelerated training for your own custom models? Framework integrations: Would you like to see FastVideo in ComfyUI, A1111, or other application frameworks? If you’re currently using Diffusers for video generation with one of our supported models, we’d be especially interested in hearing about your experience migrating to FastVideo. What kind of speedups are you seeing? Have you encountered any issues?\nAcknowledgements FastVideo builds on contributions from many researchers and engineers. We’re particularly grateful to the following teams and projects we learned and reused code from: PCM, diffusers, OpenSoraPlan, xDiT, vLLM, SGLang, Wan2.1. The development of FastVideo V1 was partially supported by Anyscale and MBZUAI.\nWe also thank our early testers and community members who provided invaluable feedback throughout the development process, in particular, Jiao Dong and Yusuf Ozuysal provided invaluable feedback.\nFastVideo Team Here we want to acknowledge everyone on the FastVideo Team who contributed to FastVideo V1:\nWill Lin and Peiyuan Zhang: Project lead and architect Wei Zhou: Added Pipeline and Model Configs; Wan2.1 Pipeline; Torch compile Kevin Lin: Worked on CI/CD, Tests, ComfyUI integration and CLI Yongqi Chen: Added STA support to Wan2.1 Zihang He: Added StepVideo Pipeline You Zhou: Worked on CD Wenting Zhang: Worked on ComfyUI integration Cody Yu: Helped design V1 architecture Richard Liaw: Helped design API and advised the project Hao Zhang: Advised entire project ",
+  "wordCount" : "2411",
+  "inLanguage": "zh",
+  "image":"http://localhost:1313/img/cover_fastvideo_v1.png","datePublished": "2025-04-24T11:00:00-08:00",
+  "dateModified": "2025-04-24T11:00:00-08:00",
+  "author":{
+    "@type": "Person",
+    "name": "FastVideo Team"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "http://localhost:1313/blogs/fastvideo/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Game AI Lab @ ZGCA",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "http://localhost:1313/favicon.ico"
+    }
+  }
+}
+</script>
+    
+    	<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<script>
+  MathJax = {
+    tex: {
+      displayMath: [['\\[', '\\]'], ['$$', '$$']],  
+      inlineMath: [['\\(', '\\)'], ['$', '$']]      
+    }
+  };
+</script>
+
+    
+</head>
+
+<body class="" id="top"><head>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="Game AI Lab @ ZGCA (Alt + H)">
+                <img id="logo-image" src="/img/HAOAILAB_LOGO-transparent.jpg" alt="Game AI Lab @ ZGCA" height="40">
+            </a>
+            <div class="logo-switches">
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                  <a href="http://localhost:1313/" title="首页">
+                      <span>首页</span>
+                  </a>
+            </li>
+            <li>
+                  <a href="http://localhost:1313/blogs/" title="新闻">
+                      <span>新闻</span>
+                  </a>
+            </li>
+            <li>
+                  <a href="http://localhost:1313/projects/" title="项目">
+                      <span>项目</span>
+                  </a>
+            </li>
+            <li>
+                  <a href="http://localhost:1313/publications/" title="论文">
+                      <span>论文</span>
+                  </a>
+            </li>
+            <li>
+                  <a href="http://localhost:1313/people/" title="成员">
+                      <span>成员</span>
+                  </a>
+            </li>
+            <li>
+                  <a href="http://localhost:1313/contact/" title="加入我们">
+                      <span>加入我们</span>
+                  </a>
+            </li>
+
+            <li style="display: flex; align-items: center; margin-left: 10px;">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+                
+                <span style="margin: 0 8px;">|</span>
+                <div class="lang-switch">
+                    <ul>
+                    <li>
+                        <a href="http://localhost:1313/en/" title="English"
+                            aria-label="English">En</a>
+                    </li>
+                    </ul>
+                </div>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<script>
+    function updateThemeAndLogo() {
+        
+        document.body.classList.toggle('dark');
+
+        
+        const isDarkTheme = document.body.classList.contains('dark');
+        const logoImage = document.getElementById('logo-image');
+        logoImage.src = isDarkTheme ? '/img/HAOAILAB_LOGO-dark-mode.png' : '/img/HAOAILAB_LOGO-transparent.jpg';
+
+        
+        const themePreference = isDarkTheme ? 'dark' : 'light';
+        localStorage.setItem('pref-theme', themePreference);
+    }
+
+    function applyCurrentThemeAndLogo() {
+        
+        const isDarkTheme = document.body.classList.contains('dark');
+
+        
+        const logoImage = document.getElementById('logo-image');
+        logoImage.src = isDarkTheme ? '/img/HAOAILAB_LOGO-dark-mode.png' : '/img/HAOAILAB_LOGO-transparent.jpg';
+    }
+
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        const themeToggleButton = document.getElementById('theme-toggle');
+        if (themeToggleButton) {
+            themeToggleButton.addEventListener('click', updateThemeAndLogo);
+        }
+
+        
+        
+        const savedTheme = localStorage.getItem('pref-theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        document.body.classList.toggle('dark', savedTheme === 'dark');
+    });
+
+    
+    const themeToggleButton = document.getElementById('theme-toggle');
+    if (themeToggleButton) {
+        themeToggleButton.addEventListener('click', () => {
+            updateThemeAndLogo(); 
+        });
+        
+        applyCurrentThemeAndLogo();
+    }
+</script>
+
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-T4DXGLCH1D"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-T4DXGLCH1D');
+</script>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      FastVideo V1: A Unified Framework for Accelerated Video Generation
+    </h1>
+    <div class="post-meta"><span title='2025-04-24 11:00:00 -0800 -0800'>四月 24, 2025</span>&nbsp;·&nbsp;12 分钟&nbsp;·&nbsp;FastVideo Team
+
+</div>
+  </header> 
+  <div class="post-content"><style>
+  .badge-container {
+    display: flex;
+    flex-wrap: nowrap;         
+    gap: 60px;
+    padding-left: 30px;
+    justify-content: flex-start;
+    overflow-x: auto;          
+  }
+
+   
+  @media (max-width: 600px) {
+    .badge-container {
+      gap: 60px;
+      padding-left: 30px;
+    }
+    .badge-container a {
+      flex-shrink: 0;
+    }
+  }
+</style>
+
+<div class="badge-container">
+    
+        <a href="https://github.com/hao-ai-lab/FastVideo" target="_blank" rel="noopener noreferrer">
+          <img src="https://img.shields.io/github/stars/hao-ai-lab/FastVideo?style=social" style="transform: scale(1.5);">
+        </a>
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+</div>
+
+<p><strong>TL;DR:</strong> We are announcing <a href="https://github.com/hao-ai-lab/FastVideo">FastVideo V1</a>, a unified framework that accelerates video generation. This new version features a clean, consistent API that works across popular video models, making it easier for developers to author new models and incorporate system - or kernel - level optimizations. For example, FastVideo V1 provides 3x speedup for inference while maintaining quality by seamlessly integrating <a href="https://arxiv.org/abs/2410.02367">SageAttention</a> and <a href="https://arxiv.org/pdf/2411.19108">Teacache</a>.</p>
+<style>
+  .gray-text {
+    color: #808080;
+  }
+</style>
+
+
+  <img src="img/perf.png" alt="fastvideo logo" style="width: 100%; height: auto;">
+
+
+<h2 id="whats-new">What&rsquo;s New<a hidden class="anchor" aria-hidden="true" href="#whats-new">#</a></h2>
+<p>Modern open-source video generation models such as <a href="https://github.com/Tencent/HunyuanVideo">HunyuanVideo</a> and <a href="https://github.com/Wan-Video/Wan2.1/tree/main">Wan2.1</a> have reached impressive levels of quality, creating videos comparable to closed-source models. However, it is well known that using these models for creative work still remains highly impractical. Creating a few seconds of high-quality video can take <strong>15+ minutes</strong> even on high-end H100 GPUs using existing video generation tools such as Diffusers &ndash; and multi-GPU setups are complex if not outright impossible. As a result, there are a significant number of research teams developing cutting edge techniques to accelerate these models, such as <a href="https://arxiv.org/pdf/2502.04507">Sliding Tile Attention</a>, <a href="https://arxiv.org/abs/2410.02367">SageAttention</a>, <a href="https://arxiv.org/pdf/2411.19108">TeaCache</a>, <a href="https://github.com/xdit-project/xDiT">xDIT</a> and many more.</p>
+<p>In FastVideo V1, we aim to provide a platform to unify the work across the video generation ecosystem to provide highly accessible and performant video generation. FastVideo V1 offers:</p>
+<ol>
+<li>A simple, consistent API that&rsquo;s easy to use and integrate</li>
+<li>A collection of model performance optimizations and techniques that can be composed with each other</li>
+<li>A clean and articulate way for model creators to define and distribute video generation models to end users</li>
+</ol>
+<p>If you&rsquo;re a Diffusers user struggling with the 15+ minute generation times and complex multi-GPU setups, FastVideo offers a simpler alternative for state-of-the-art models like Wan2.1. You&rsquo;re likely familiar with these challenges:</p>
+<style>
+.gray-text {
+    color: #808080;
+}
+</style>
+
+
+<figure>
+    <div style="display: grid; place-items: center;">
+        <div style="display: flex; justify-content: center;">
+            <table>
+  <thead>
+      <tr>
+          <th><strong>Diffusers Challenge</strong></th>
+          <th><strong>FastVideo Solution</strong></th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>15+ minute generation times on a single GPU</td>
+          <td>2x-3x acceleration for supported models with the same quality</td>
+      </tr>
+      <tr>
+          <td>Complex bash scripts needed for multi-GPU use</td>
+          <td>Simple <code>num_gpus=N</code> parameter handles everything</td>
+      </tr>
+      <tr>
+          <td>Large memory overhead during generation</td>
+          <td>Memory-efficient attention and sharding optimizations</td>
+      </tr>
+      <tr>
+          <td>Long model loading times</td>
+          <td>Up to 7x faster model loading</td>
+      </tr>
+  </tbody>
+</table>
+
+        </div>
+        <figcaption style="font-size: 16px;" class="gray-text">Diffusers challenges and how FastVideo addresses them.</figcaption>
+    </div>
+</figure>
+
+
+<h2 id="quick-start">Quick Start<a hidden class="anchor" aria-hidden="true" href="#quick-start">#</a></h2>
+<p>Requirements:</p>
+<ul>
+<li>NVIDIA GPU with CUDA 12.4</li>
+<li>Python 3.10-3.12</li>
+</ul>
+<p>We recommend using Conda or virtualenv.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>pip install fastvideo
+</span></span></code></pre></div><p>Create a Python file <code>generate_video.py</code> and copy the following:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">from</span> fastvideo <span style="color:#f92672">import</span> VideoGenerator
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">main</span>():
+</span></span><span style="display:flex;"><span>    generator <span style="color:#f92672">=</span> VideoGenerator<span style="color:#f92672">.</span>from_pretrained(<span style="color:#e6db74">&#34;Wan-AI/Wan2.1-T2V-1.3B-Diffusers&#34;</span>, num_gpus<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    video <span style="color:#f92672">=</span> generator<span style="color:#f92672">.</span>generate_video(<span style="color:#e6db74">&#34;a person walking in a forest&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> __name__ <span style="color:#f92672">==</span> <span style="color:#e6db74">&#39;__main__&#39;</span>:
+</span></span><span style="display:flex;"><span>    main()
+</span></span></code></pre></div><p>Run without any special commands:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>python generate_video.py  <span style="color:#75715e"># No torchrun or accelerate necessary</span>
+</span></span></code></pre></div><p>We next explore key features along with this release.</p>
+<h2 id="simple-unified-python-api-with-multi-gpu-support">Simple, Unified Python API with Multi-GPU Support<a hidden class="anchor" aria-hidden="true" href="#simple-unified-python-api-with-multi-gpu-support">#</a></h2>
+<p>FastVideo V1 features a streamlined Python API with built-in multi-GPU support that eliminates the need for complex command-line tools or bash scripts.</p>
+<div class="case-study">
+    <div class="case-study-header">
+        <svg class="case-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="9" y1="3" x2="9" y2="21"></line>
+            <line x1="15" y1="12" x2="3" y2="12"></line>
+        </svg>
+        <span>Generating Videos: FastVideo vs Diffusers vs xDiT</span>
+    </div>
+    <div class="case-study-tabs">
+        
+        
+        
+        
+        
+        <div class="tabs-header">
+            
+                <button class="tab-button active" 
+                        data-tab="tab-0-3">
+                    FastVideo
+                </button>
+            
+                <button class="tab-button" 
+                        data-tab="tab-1-3">
+                    Diffusers
+                </button>
+            
+                <button class="tab-button" 
+                        data-tab="tab-2-3">
+                    xDiT
+                </button>
+            
+        </div>
+        
+        <div class="tabs-content">
+            
+                <div class="tab-pane active" 
+                     id="tab-0-3">
+                    <p>In this example, we showcase how <code>PipelineConfig</code> is used to configure the pipeline initialization parameters and how <code>SamplingParam</code> is used to configure the generation time parameters:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">from</span> fastvideo <span style="color:#f92672">import</span> VideoGenerator, SamplingParam, PipelineConfig
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">main</span>():
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># Initialization config</span>
+</span></span><span style="display:flex;"><span>    model_name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;Wan-AI/Wan2.1-T2V-1.3B-Diffusers&#34;</span>
+</span></span><span style="display:flex;"><span>    config <span style="color:#f92672">=</span> PipelineConfig<span style="color:#f92672">.</span>from_pretrained(model_name)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># Can adjust any parameters</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># Other arguments will be set to best defaults</span>
+</span></span><span style="display:flex;"><span>    config<span style="color:#f92672">.</span>num_gpus <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span> <span style="color:#75715e"># how many GPUS to parallelize generation</span>
+</span></span><span style="display:flex;"><span>    config<span style="color:#f92672">.</span>vae_config<span style="color:#f92672">.</span>vae_precision <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;fp32&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># Override default configurations while keeping optimal defaults for other settings</span>
+</span></span><span style="display:flex;"><span>    generator <span style="color:#f92672">=</span> VideoGenerator<span style="color:#f92672">.</span>from_pretrained(model_name, pipeline_config<span style="color:#f92672">=</span>config)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># Generation config</span>
+</span></span><span style="display:flex;"><span>    param <span style="color:#f92672">=</span> SamplingParam<span style="color:#f92672">.</span>from_pretrained(model_name)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># Adjust specific sampling parameters</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># Other arguments will be set to best defaults</span>
+</span></span><span style="display:flex;"><span>    param<span style="color:#f92672">.</span>num_inference_steps<span style="color:#f92672">=</span><span style="color:#ae81ff">30</span> <span style="color:#75715e"># higher quality</span>
+</span></span><span style="display:flex;"><span>    param<span style="color:#f92672">.</span>guidance_scale<span style="color:#f92672">=</span><span style="color:#ae81ff">7.5</span> <span style="color:#75715e"># stronger guidance</span>
+</span></span><span style="display:flex;"><span>    param<span style="color:#f92672">.</span>width<span style="color:#f92672">=</span><span style="color:#ae81ff">1024</span>  <span style="color:#75715e"># Higher resolution</span>
+</span></span><span style="display:flex;"><span>    param<span style="color:#f92672">.</span>height<span style="color:#f92672">=</span><span style="color:#ae81ff">576</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># Users can also directly override any field of sampling_param using kwargs</span>
+</span></span><span style="display:flex;"><span>    video <span style="color:#f92672">=</span> generator<span style="color:#f92672">.</span>generate_video(
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;fox in the forest close-up quickly turned its head to the left&#34;</span>,
+</span></span><span style="display:flex;"><span>        sampling_param<span style="color:#f92672">=</span>param,
+</span></span><span style="display:flex;"><span>        num_inference_steps<span style="color:#f92672">=</span><span style="color:#ae81ff">35</span>  <span style="color:#75715e"># will override param.num_inference_steps</span>
+</span></span><span style="display:flex;"><span>    )
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> __name__ <span style="color:#f92672">==</span> <span style="color:#e6db74">&#39;__main__&#39;</span>:
+</span></span><span style="display:flex;"><span>    main()
+</span></span></code></pre></div>
+                </div>
+            
+                <div class="tab-pane" 
+                     id="tab-1-3">
+                    <p>HuggingFace&rsquo;s <a href="https://github.com/huggingface/diffusers">Diffusers</a> library has become a standard for diffusion models, but its architecture is limited to <strong>only data parallelism</strong> and requires launching processes from the CLI using <code>accelerate</code> or <code>torchrun</code>.</p>
+<p>How to use data parallelism in Diffusers:
+(Taken from Diffusers example <a href="https://huggingface.co/docs/diffusers/en/training/distributed_inference#-accelerate">here</a>)</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># Diffusers with Accelerate: Requires CLI command and only helps for batch processing</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> torch
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> accelerate <span style="color:#f92672">import</span> PartialState
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> diffusers <span style="color:#f92672">import</span> DiffusionPipeline
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>pipeline <span style="color:#f92672">=</span> DiffusionPipeline<span style="color:#f92672">.</span>from_pretrained(
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;stable-diffusion-v1-5/stable-diffusion-v1-5&#34;</span>, torch_dtype<span style="color:#f92672">=</span>torch<span style="color:#f92672">.</span>float16, use_safetensors<span style="color:#f92672">=</span><span style="color:#66d9ef">True</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>distributed_state <span style="color:#f92672">=</span> PartialState()
+</span></span><span style="display:flex;"><span>pipeline<span style="color:#f92672">.</span>to(distributed_state<span style="color:#f92672">.</span>device)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># This only distributes DIFFERENT prompts to DIFFERENT GPUs</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># It cannot accelerate a single video generation</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">with</span> distributed_state<span style="color:#f92672">.</span>split_between_processes([<span style="color:#e6db74">&#34;a dog&#34;</span>, <span style="color:#e6db74">&#34;a cat&#34;</span>]) <span style="color:#66d9ef">as</span> prompt:
+</span></span><span style="display:flex;"><span>    result <span style="color:#f92672">=</span> pipeline(prompt)<span style="color:#f92672">.</span>images[<span style="color:#ae81ff">0</span>]
+</span></span><span style="display:flex;"><span>    result<span style="color:#f92672">.</span>save(<span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;result_</span><span style="color:#e6db74">{</span>distributed_state<span style="color:#f92672">.</span>process_index<span style="color:#e6db74">}</span><span style="color:#e6db74">.png&#34;</span>)
+</span></span></code></pre></div><p>Then finally, launch from command line using <code>accelerate</code>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ accelerate launch run_distributed.py --num_processes<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span>
+</span></span></code></pre></div>
+                </div>
+            
+                <div class="tab-pane" 
+                     id="tab-2-3">
+                    <p><a href="https://github.com/xdit-project/xDiT">xDiT</a> (also known as xFusers) improves upon Diffusers by supporting tensor and sequence parallelism for the diffusion model. However, its API still requires <code>torchrun</code> and complicated bash scripts to configure and launch. Below is the primary <a href="https://github.com/xdit-project/xDiT/blob/main/examples/run.sh">example script</a> from xDiT:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>set -x
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>export PYTHONPATH<span style="color:#f92672">=</span>$PWD:$PYTHONPATH
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Select the model type</span>
+</span></span><span style="display:flex;"><span>export MODEL_TYPE<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;Flux&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Configuration for different model types</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># script, model_id, inference_step</span>
+</span></span><span style="display:flex;"><span>declare -A MODEL_CONFIGS<span style="color:#f92672">=(</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">[</span><span style="color:#e6db74">&#34;Pixart-alpha&#34;</span><span style="color:#f92672">]=</span><span style="color:#e6db74">&#34;pixartalpha_example.py /cfs/dit/PixArt-XL-2-1024-MS 20&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">[</span><span style="color:#e6db74">&#34;Pixart-sigma&#34;</span><span style="color:#f92672">]=</span><span style="color:#e6db74">&#34;pixartsigma_example.py /cfs/dit/PixArt-Sigma-XL-2-2K-MS 20&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">[</span><span style="color:#e6db74">&#34;Sd3&#34;</span><span style="color:#f92672">]=</span><span style="color:#e6db74">&#34;sd3_example.py /cfs/dit/stable-diffusion-3-medium-diffusers 20&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">[</span><span style="color:#e6db74">&#34;Flux&#34;</span><span style="color:#f92672">]=</span><span style="color:#e6db74">&#34;flux_example.py /cfs/dit/FLUX.1-dev/ 28&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">[</span><span style="color:#e6db74">&#34;HunyuanDiT&#34;</span><span style="color:#f92672">]=</span><span style="color:#e6db74">&#34;hunyuandit_example.py /cfs/dit/HunyuanDiT-v1.2-Diffusers 50&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">[</span><span style="color:#e6db74">&#34;SDXL&#34;</span><span style="color:#f92672">]=</span><span style="color:#e6db74">&#34;sdxl_example.py /cfs/dit/stable-diffusion-xl-base-1.0 30&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> <span style="color:#f92672">[[</span> -v MODEL_CONFIGS<span style="color:#f92672">[</span>$MODEL_TYPE<span style="color:#f92672">]</span> <span style="color:#f92672">]]</span>; <span style="color:#66d9ef">then</span>
+</span></span><span style="display:flex;"><span>    IFS<span style="color:#f92672">=</span><span style="color:#e6db74">&#39; &#39;</span> read -r SCRIPT MODEL_ID INFERENCE_STEP <span style="color:#f92672">&lt;&lt;&lt;</span> <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>MODEL_CONFIGS[$MODEL_TYPE]<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>    export SCRIPT MODEL_ID INFERENCE_STEP
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">else</span>
+</span></span><span style="display:flex;"><span>    echo <span style="color:#e6db74">&#34;Invalid MODEL_TYPE: </span>$MODEL_TYPE<span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>    exit <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">fi</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>mkdir -p ./results
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># task args</span>
+</span></span><span style="display:flex;"><span>TASK_ARGS<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;--height 1024 --width 1024 --no_use_resolution_binning&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># cache args</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># CACHE_ARGS=&#34;--use_teacache&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># CACHE_ARGS=&#34;--use_fbcache&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># On 8 gpus, pp=2, ulysses=2, ring=1, cfg_parallel=2 (split batch)</span>
+</span></span><span style="display:flex;"><span>N_GPUS<span style="color:#f92672">=</span><span style="color:#ae81ff">8</span>
+</span></span><span style="display:flex;"><span>PARALLEL_ARGS<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;--pipefusion_parallel_degree 2 --ulysses_degree 2 --ring_degree 2&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># CFG_ARGS=&#34;--use_cfg_parallel&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># By default, num_pipeline_patch = pipefusion_degree, and you can tune this parameter to achieve optimal performance.</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># PIPEFUSION_ARGS=&#34;--num_pipeline_patch 8 &#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># For high-resolution images, we use the latent output type to avoid runing the vae module. Used for measuring speed.</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># OUTPUT_ARGS=&#34;--output_type latent&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># PARALLLEL_VAE=&#34;--use_parallel_vae&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Another compile option is `--use_onediff` which will use onediff&#39;s compiler.</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># COMPILE_FLAG=&#34;--use_torch_compile&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Use this flag to quantize the T5 text encoder, which could reduce the memory usage and have no effect on the result quality.</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># QUANTIZE_FLAG=&#34;--use_fp8_t5_encoder&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># export CUDA_VISIBLE_DEVICES=4,5,6,7</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>torchrun --nproc_per_node<span style="color:#f92672">=</span>$N_GPUS ./examples/$SCRIPT <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>--model $MODEL_ID <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>$PARALLEL_ARGS <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>$TASK_ARGS <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>$PIPEFUSION_ARGS <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>$OUTPUT_ARGS <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>--num_inference_steps $INFERENCE_STEP <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>--warmup_steps <span style="color:#ae81ff">1</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>--prompt <span style="color:#e6db74">&#34;brown dog laying on the ground with a metal bowl in front of him.&#34;</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>$CFG_ARGS <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>$PARALLLEL_VAE <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>$COMPILE_FLAG <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>$QUANTIZE_FLAG <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>$CACHE_ARGS <span style="color:#ae81ff">\
+</span></span></span></code></pre></div><p>After configuring the above script, run with:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>bash examples/run.sh
+</span></span></code></pre></div>
+                </div>
+            
+        </div>
+    </div>
+</div>
+
+<style>
+.case-study {
+    background-color: rgba(255, 152, 0, 0.05);
+    border-left: 4px solid rgba(255, 152, 0, 0.7);
+    border-radius: 4px;
+    margin: 1.5rem 0;
+    padding: 1rem;
+}
+
+.case-study-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+    color: #e65100;
+}
+
+.case-icon {
+    margin-right: 0.5rem;
+    color: #e65100;
+}
+
+.tabs-header {
+    display: flex;
+    border-bottom: 1px solid rgba(255, 152, 0, 0.3);
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.tab-button {
+    background-color: rgba(255, 152, 0, 0.05);
+    border: 1px solid rgba(255, 152, 0, 0.3);
+    border-bottom: 2px solid transparent;
+    border-radius: 4px 4px 0 0;
+    padding: 0.3rem 0.9rem;
+    margin-right: 0.5rem;
+    margin-bottom: -1px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 1rem;
+    color: #777;
+    transition: all 0.2s ease;
+    min-width: 150px;
+    text-align: center;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05);
+    position: relative;
+}
+
+.tab-button::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 0;
+    background-color: rgba(255, 152, 0, 0.3);
+    transition: height 0.2s ease;
+}
+
+.tab-button:hover {
+    color: #e65100;
+    background-color: rgba(255, 152, 0, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 -3px 7px rgba(0, 0, 0, 0.1);
+}
+
+.tab-button:hover::after {
+    height: 3px;
+}
+
+.tab-button.active {
+    color: #e65100;
+    background-color: rgba(255, 152, 0, 0.3);
+    border-bottom: 3px solid #e65100;
+    transform: translateY(0);
+    z-index: 1;
+    font-weight: 700;
+}
+
+.tab-pane {
+    display: none;
+}
+
+.tab-pane.active {
+    display: block;
+}
+
+.case-study-content, .tab-pane {
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.case-study-content strong,
+.case-study-content b,
+.tab-pane strong,
+.tab-pane b {
+    font-weight: 700;
+}
+
+.case-study-content ul,
+.case-study-content ol,
+.tab-pane ul,
+.tab-pane ol {
+    padding-left: 1.5rem;
+    margin: 0.5rem 0;
+}
+
+@media (prefers-color-scheme: dark) {
+    .case-study {
+        background-color: rgba(255, 152, 0, 0.1);
+        border-left: 4px solid rgba(255, 152, 0, 0.6);
+    }
+    
+    .case-study-header, .case-icon {
+        color: #ffb74d;
+    }
+    
+    .tab-button {
+        background-color: rgba(255, 152, 0, 0.1);
+        border-color: rgba(255, 152, 0, 0.4);
+        color: #999;
+        box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+    }
+    
+    .tab-button::after {
+        background-color: rgba(255, 152, 0, 0.4);
+    }
+    
+    .tab-button.active {
+        color: #ff9800;
+        background-color: rgba(255, 152, 0, 0.35);
+        border-bottom: 3px solid #ff9800;
+        font-weight: 700;
+    }
+    
+    .tab-button:hover {
+        color: #ff9800;
+        background-color: rgba(255, 152, 0, 0.25);
+        box-shadow: 0 -3px 7px rgba(0, 0, 0, 0.25);
+    }
+}
+</style>
+
+<script>
+(function() {
+    document.addEventListener('DOMContentLoaded', function() {
+        const tabButtons = document.querySelectorAll('.tab-button');
+        
+        tabButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                
+                const tabId = this.getAttribute('data-tab');
+                
+                
+                const tabsContainer = this.closest('.case-study-tabs');
+                
+                
+                tabsContainer.querySelectorAll('.tab-button').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                tabsContainer.querySelectorAll('.tab-pane').forEach(pane => {
+                    pane.classList.remove('active');
+                });
+                
+                
+                this.classList.add('active');
+                
+                
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+    });
+})();
+</script> 
+<p>When <code>num_gpus &gt; 1</code>, FastVideo automatically applies the optimal parallelism strategy without requiring <code>torchrun</code> or <code>accelerate</code> commands. This streamlined API makes it easy to integrate FastVideo into applications, as demonstrated in our <a href="https://github.com/hao-ai-lab/FastVideo/tree/main/examples/inference/gradio">Gradio example</a>.</p>
+<p>With just a HuggingFace model identifier, FastVideo configures all pipeline components for high-quality output. For advanced users needing fine-grained control, our comprehensive API provides access to all pipeline components through customizable configuration objects that can be passed to <code>VideoGenerator.from_pretrained()</code>.</p>
+<p>Users can adjust both initialization parameters (model loading, precision) and sampling parameters (inference steps, guidance scale, dimensions) while maintaining optimal defaults for everything else. Model authors can contribute configurations for their models to our repository, making them immediately accessible with optimal settings.</p>
+<p>In our roadmap, we plan to extend FastVideo V1 with training and distillation support, leveraging the same modular architecture and configuration system.</p>
+<h3 id="modular-architecture-with-clean-separation">Modular Architecture with Clean Separation<a hidden class="anchor" aria-hidden="true" href="#modular-architecture-with-clean-separation">#</a></h3>
+<p>FastVideo provides clear separation between model architecture and implementation, similar to modern LLM inference frameworks. This allows model authors to leverage FastVideo&rsquo;s distributed processing, optimized components, and parallelism strategies without rewriting their core model logic. With FastVideo&rsquo;s clean architecture, researchers can implement a new optimization once and have it benefit all compatible models in the ecosystem.</p>
+<p>The following snippet demonstrates how a new model might be implemented with FastVideo&rsquo;s components:</p>
+<div class="case-study">
+    <div class="case-study-header">
+        <svg class="case-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="9" y1="3" x2="9" y2="21"></line>
+            <line x1="15" y1="12" x2="3" y2="12"></line>
+        </svg>
+        <span>Defining New Models</span>
+    </div>
+    <div class="case-study-tabs">
+        
+        
+        
+        
+        
+        <div class="tabs-header">
+            
+                <button class="tab-button active" 
+                        data-tab="tab-0-4">
+                    FastVideo
+                </button>
+            
+        </div>
+        
+        <div class="tabs-content">
+            
+                <div class="tab-pane active" 
+                     id="tab-0-4">
+                    <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">from</span> fastvideo.v1.layers.linear <span style="color:#f92672">import</span> QKVParallelLinear
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> fastvideo.v1.attention <span style="color:#f92672">import</span> LocalAttention
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> fastvideo.v1.layers.rotary_embedding <span style="color:#f92672">import</span> get_rope
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Define model with FastVideo optimized components</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">CustomEncoderModel</span>(nn<span style="color:#f92672">.</span>Module):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">__init__</span>(self, hidden_size<span style="color:#f92672">=</span><span style="color:#ae81ff">1024</span>, num_heads<span style="color:#f92672">=</span><span style="color:#ae81ff">16</span>, head_dim<span style="color:#f92672">=</span><span style="color:#ae81ff">64</span>):
+</span></span><span style="display:flex;"><span>        super()<span style="color:#f92672">.</span><span style="color:#a6e22e">__init__</span>()
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># Use FastVideo&#39;s optimized layers</span>
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>qkv_proj <span style="color:#f92672">=</span> QKVParallelLinear(
+</span></span><span style="display:flex;"><span>            hidden_size<span style="color:#f92672">=</span>hidden_size,
+</span></span><span style="display:flex;"><span>            head_size<span style="color:#f92672">=</span>head_dim,
+</span></span><span style="display:flex;"><span>            total_num_heads<span style="color:#f92672">=</span>num_heads,
+</span></span><span style="display:flex;"><span>            total_num_kv_heads<span style="color:#f92672">=</span>num_heads
+</span></span><span style="display:flex;"><span>        )
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>rotary_emb <span style="color:#f92672">=</span> get_rope(
+</span></span><span style="display:flex;"><span>            head_dim, 
+</span></span><span style="display:flex;"><span>            rotary_dim<span style="color:#f92672">=</span>head_dim,
+</span></span><span style="display:flex;"><span>            max_position<span style="color:#f92672">=</span><span style="color:#ae81ff">8192</span>
+</span></span><span style="display:flex;"><span>        )
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>attn <span style="color:#f92672">=</span> LocalAttention(
+</span></span><span style="display:flex;"><span>            num_heads<span style="color:#f92672">=</span>num_heads <span style="color:#f92672">//</span> get_tensor_model_parallel_world_size(),
+</span></span><span style="display:flex;"><span>            head_dim<span style="color:#f92672">=</span>head_dim,
+</span></span><span style="display:flex;"><span>            num_kv_heads<span style="color:#f92672">=</span>num_heads <span style="color:#f92672">//</span> get_tensor_model_parallel_world_size(),
+</span></span><span style="display:flex;"><span>            causal<span style="color:#f92672">=</span><span style="color:#66d9ef">True</span>
+</span></span><span style="display:flex;"><span>        )
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">forward</span>(self, positions, hidden_states):
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># Simple model logic, actual implementation called depends on user configuration and available optimizations</span>
+</span></span><span style="display:flex;"><span>        qkv, _ <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>qkv_proj(hidden_states)
+</span></span><span style="display:flex;"><span>        q, k, v <span style="color:#f92672">=</span> qkv<span style="color:#f92672">.</span>split([self<span style="color:#f92672">.</span>q_size, self<span style="color:#f92672">.</span>kv_size, self<span style="color:#f92672">.</span>kv_size], dim<span style="color:#f92672">=-</span><span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>        q, k <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>rotary_emb(positions, q, k)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> self<span style="color:#f92672">.</span>attn(q, k, v)
+</span></span></code></pre></div>
+                </div>
+            
+        </div>
+    </div>
+</div>
+
+<style>
+.case-study {
+    background-color: rgba(255, 152, 0, 0.05);
+    border-left: 4px solid rgba(255, 152, 0, 0.7);
+    border-radius: 4px;
+    margin: 1.5rem 0;
+    padding: 1rem;
+}
+
+.case-study-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+    color: #e65100;
+}
+
+.case-icon {
+    margin-right: 0.5rem;
+    color: #e65100;
+}
+
+.tabs-header {
+    display: flex;
+    border-bottom: 1px solid rgba(255, 152, 0, 0.3);
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.tab-button {
+    background-color: rgba(255, 152, 0, 0.05);
+    border: 1px solid rgba(255, 152, 0, 0.3);
+    border-bottom: 2px solid transparent;
+    border-radius: 4px 4px 0 0;
+    padding: 0.3rem 0.9rem;
+    margin-right: 0.5rem;
+    margin-bottom: -1px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 1rem;
+    color: #777;
+    transition: all 0.2s ease;
+    min-width: 150px;
+    text-align: center;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05);
+    position: relative;
+}
+
+.tab-button::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 0;
+    background-color: rgba(255, 152, 0, 0.3);
+    transition: height 0.2s ease;
+}
+
+.tab-button:hover {
+    color: #e65100;
+    background-color: rgba(255, 152, 0, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 -3px 7px rgba(0, 0, 0, 0.1);
+}
+
+.tab-button:hover::after {
+    height: 3px;
+}
+
+.tab-button.active {
+    color: #e65100;
+    background-color: rgba(255, 152, 0, 0.3);
+    border-bottom: 3px solid #e65100;
+    transform: translateY(0);
+    z-index: 1;
+    font-weight: 700;
+}
+
+.tab-pane {
+    display: none;
+}
+
+.tab-pane.active {
+    display: block;
+}
+
+.case-study-content, .tab-pane {
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.case-study-content strong,
+.case-study-content b,
+.tab-pane strong,
+.tab-pane b {
+    font-weight: 700;
+}
+
+.case-study-content ul,
+.case-study-content ol,
+.tab-pane ul,
+.tab-pane ol {
+    padding-left: 1.5rem;
+    margin: 0.5rem 0;
+}
+
+@media (prefers-color-scheme: dark) {
+    .case-study {
+        background-color: rgba(255, 152, 0, 0.1);
+        border-left: 4px solid rgba(255, 152, 0, 0.6);
+    }
+    
+    .case-study-header, .case-icon {
+        color: #ffb74d;
+    }
+    
+    .tab-button {
+        background-color: rgba(255, 152, 0, 0.1);
+        border-color: rgba(255, 152, 0, 0.4);
+        color: #999;
+        box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+    }
+    
+    .tab-button::after {
+        background-color: rgba(255, 152, 0, 0.4);
+    }
+    
+    .tab-button.active {
+        color: #ff9800;
+        background-color: rgba(255, 152, 0, 0.35);
+        border-bottom: 3px solid #ff9800;
+        font-weight: 700;
+    }
+    
+    .tab-button:hover {
+        color: #ff9800;
+        background-color: rgba(255, 152, 0, 0.25);
+        box-shadow: 0 -3px 7px rgba(0, 0, 0, 0.25);
+    }
+}
+</style>
+
+<script>
+(function() {
+    document.addEventListener('DOMContentLoaded', function() {
+        const tabButtons = document.querySelectorAll('.tab-button');
+        
+        tabButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                
+                const tabId = this.getAttribute('data-tab');
+                
+                
+                const tabsContainer = this.closest('.case-study-tabs');
+                
+                
+                tabsContainer.querySelectorAll('.tab-button').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                tabsContainer.querySelectorAll('.tab-pane').forEach(pane => {
+                    pane.classList.remove('active');
+                });
+                
+                
+                this.classList.add('active');
+                
+                
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+    });
+})();
+</script> 
+<h3 id="composablepipeline-and-pipelinestage-abstraction">ComposablePipeline and PipelineStage Abstraction<a hidden class="anchor" aria-hidden="true" href="#composablepipeline-and-pipelinestage-abstraction">#</a></h3>
+<p>FastVideo splits the diffusion pipeline into <em>functional and reusable</em> stages, avoiding code duplication and enabling pipeline-level optimizations. This modular approach lets developers easily customize specific parts of the generation process while reusing standard components.</p>
+<div class="case-study">
+    <div class="case-study-header">
+        <svg class="case-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="9" y1="3" x2="9" y2="21"></line>
+            <line x1="15" y1="12" x2="3" y2="12"></line>
+        </svg>
+        <span>Diffusion Pipelines: FastVideo vs Diffusers</span>
+    </div>
+    <div class="case-study-tabs">
+        
+        
+        
+        
+        
+        <div class="tabs-header">
+            
+                <button class="tab-button active" 
+                        data-tab="tab-0-5">
+                    FastVideo
+                </button>
+            
+                <button class="tab-button" 
+                        data-tab="tab-1-5">
+                    Diffusers
+                </button>
+            
+        </div>
+        
+        <div class="tabs-content">
+            
+                <div class="tab-pane active" 
+                     id="tab-0-5">
+                    <p>Each of these <code>Stage</code> in FastVideo can be reused by other pipelines or composed for other purposes such as training or distillation (coming soon!)</p>
+<p>Below we show FastVideo&rsquo;s entire file for Wan2.1 Pipeline. It is only 63 lines!</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># SPDX-License-Identifier: Apache-2.0</span>
+</span></span><span style="display:flex;"><span><span style="color:#e6db74">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">Wan video diffusion pipeline implementation.
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">This module contains an implementation of the Wan video diffusion pipeline
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">using the modular pipeline architecture.
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> fastvideo.v1.fastvideo_args <span style="color:#f92672">import</span> FastVideoArgs
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> fastvideo.v1.logger <span style="color:#f92672">import</span> init_logger
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> fastvideo.v1.pipelines.composed_pipeline_base <span style="color:#f92672">import</span> ComposedPipelineBase
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> fastvideo.v1.pipelines.stages <span style="color:#f92672">import</span> (ConditioningStage, DecodingStage,
+</span></span><span style="display:flex;"><span>                                           DenoisingStage, InputValidationStage,
+</span></span><span style="display:flex;"><span>                                           LatentPreparationStage,
+</span></span><span style="display:flex;"><span>                                           TextEncodingStage,
+</span></span><span style="display:flex;"><span>                                           TimestepPreparationStage)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>logger <span style="color:#f92672">=</span> init_logger(__name__)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">WanPipeline</span>(ComposedPipelineBase):
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    _required_config_modules <span style="color:#f92672">=</span> [
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;text_encoder&#34;</span>, <span style="color:#e6db74">&#34;tokenizer&#34;</span>, <span style="color:#e6db74">&#34;vae&#34;</span>, <span style="color:#e6db74">&#34;transformer&#34;</span>, <span style="color:#e6db74">&#34;scheduler&#34;</span>
+</span></span><span style="display:flex;"><span>    ]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">create_pipeline_stages</span>(self, fastvideo_args: FastVideoArgs):
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;&#34;&#34;Set up pipeline stages with proper dependency injection.&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>add_stage(stage_name<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;input_validation_stage&#34;</span>,
+</span></span><span style="display:flex;"><span>                       stage<span style="color:#f92672">=</span>InputValidationStage())
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>add_stage(stage_name<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;prompt_encoding_stage&#34;</span>,
+</span></span><span style="display:flex;"><span>                       stage<span style="color:#f92672">=</span>TextEncodingStage(
+</span></span><span style="display:flex;"><span>                           text_encoders<span style="color:#f92672">=</span>[self<span style="color:#f92672">.</span>get_module(<span style="color:#e6db74">&#34;text_encoder&#34;</span>)],
+</span></span><span style="display:flex;"><span>                           tokenizers<span style="color:#f92672">=</span>[self<span style="color:#f92672">.</span>get_module(<span style="color:#e6db74">&#34;tokenizer&#34;</span>)],
+</span></span><span style="display:flex;"><span>                       ))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>add_stage(stage_name<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;conditioning_stage&#34;</span>,
+</span></span><span style="display:flex;"><span>                       stage<span style="color:#f92672">=</span>ConditioningStage())
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>add_stage(stage_name<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;timestep_preparation_stage&#34;</span>,
+</span></span><span style="display:flex;"><span>                       stage<span style="color:#f92672">=</span>TimestepPreparationStage(
+</span></span><span style="display:flex;"><span>                           scheduler<span style="color:#f92672">=</span>self<span style="color:#f92672">.</span>get_module(<span style="color:#e6db74">&#34;scheduler&#34;</span>)))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>add_stage(stage_name<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;latent_preparation_stage&#34;</span>,
+</span></span><span style="display:flex;"><span>                       stage<span style="color:#f92672">=</span>LatentPreparationStage(
+</span></span><span style="display:flex;"><span>                           scheduler<span style="color:#f92672">=</span>self<span style="color:#f92672">.</span>get_module(<span style="color:#e6db74">&#34;scheduler&#34;</span>),
+</span></span><span style="display:flex;"><span>                           transformer<span style="color:#f92672">=</span>self<span style="color:#f92672">.</span>get_module(<span style="color:#e6db74">&#34;transformer&#34;</span>)))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>add_stage(stage_name<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;denoising_stage&#34;</span>,
+</span></span><span style="display:flex;"><span>                       stage<span style="color:#f92672">=</span>DenoisingStage(
+</span></span><span style="display:flex;"><span>                           transformer<span style="color:#f92672">=</span>self<span style="color:#f92672">.</span>get_module(<span style="color:#e6db74">&#34;transformer&#34;</span>),
+</span></span><span style="display:flex;"><span>                           scheduler<span style="color:#f92672">=</span>self<span style="color:#f92672">.</span>get_module(<span style="color:#e6db74">&#34;scheduler&#34;</span>)))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>add_stage(stage_name<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;decoding_stage&#34;</span>,
+</span></span><span style="display:flex;"><span>                       stage<span style="color:#f92672">=</span>DecodingStage(vae<span style="color:#f92672">=</span>self<span style="color:#f92672">.</span>get_module(<span style="color:#e6db74">&#34;vae&#34;</span>)))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>EntryClass <span style="color:#f92672">=</span> WanPipeline
+</span></span></code></pre></div>
+                </div>
+            
+                <div class="tab-pane" 
+                     id="tab-1-5">
+                    <p>In Diffusers and many other repositories, the entire pipeline is redefined for each model. In the following example from <a href="">Diffusers Wan2.1</a>, we&rsquo;ve heavily pruned the pipeline code to only the <code>forward()</code> method. The original file is almost 600 lines long, and this is repeated for each supported type (I2V, V2V, etc.)</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">WanPipeline</span>(DiffusionPipeline, WanLoraLoaderMixin):
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># other steps ...</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@torch.no_grad</span>()
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@replace_example_docstring</span>(EXAMPLE_DOC_STRING)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">__call__</span>(
+</span></span><span style="display:flex;"><span>        self,
+</span></span><span style="display:flex;"><span>        prompt: Union[str, List[str]] <span style="color:#f92672">=</span> <span style="color:#66d9ef">None</span>,
+</span></span><span style="display:flex;"><span>        negative_prompt: Union[str, List[str]] <span style="color:#f92672">=</span> <span style="color:#66d9ef">None</span>,
+</span></span><span style="display:flex;"><span>        height: int <span style="color:#f92672">=</span> <span style="color:#ae81ff">480</span>,
+</span></span><span style="display:flex;"><span>        width: int <span style="color:#f92672">=</span> <span style="color:#ae81ff">832</span>,
+</span></span><span style="display:flex;"><span>        num_frames: int <span style="color:#f92672">=</span> <span style="color:#ae81ff">81</span>,
+</span></span><span style="display:flex;"><span>        num_inference_steps: int <span style="color:#f92672">=</span> <span style="color:#ae81ff">50</span>,
+</span></span><span style="display:flex;"><span>        guidance_scale: float <span style="color:#f92672">=</span> <span style="color:#ae81ff">5.0</span>,
+</span></span><span style="display:flex;"><span>        num_videos_per_prompt: Optional[int] <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>,
+</span></span><span style="display:flex;"><span>        generator: Optional[Union[torch<span style="color:#f92672">.</span>Generator, List[torch<span style="color:#f92672">.</span>Generator]]] <span style="color:#f92672">=</span> <span style="color:#66d9ef">None</span>,
+</span></span><span style="display:flex;"><span>        latents: Optional[torch<span style="color:#f92672">.</span>Tensor] <span style="color:#f92672">=</span> <span style="color:#66d9ef">None</span>,
+</span></span><span style="display:flex;"><span>        prompt_embeds: Optional[torch<span style="color:#f92672">.</span>Tensor] <span style="color:#f92672">=</span> <span style="color:#66d9ef">None</span>,
+</span></span><span style="display:flex;"><span>        negative_prompt_embeds: Optional[torch<span style="color:#f92672">.</span>Tensor] <span style="color:#f92672">=</span> <span style="color:#66d9ef">None</span>,
+</span></span><span style="display:flex;"><span>        output_type: Optional[str] <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;np&#34;</span>,
+</span></span><span style="display:flex;"><span>        return_dict: bool <span style="color:#f92672">=</span> <span style="color:#66d9ef">True</span>,
+</span></span><span style="display:flex;"><span>        attention_kwargs: Optional[Dict[str, Any]] <span style="color:#f92672">=</span> <span style="color:#66d9ef">None</span>,
+</span></span><span style="display:flex;"><span>        callback_on_step_end: Optional[
+</span></span><span style="display:flex;"><span>            Union[Callable[[int, int, Dict], <span style="color:#66d9ef">None</span>], PipelineCallback, MultiPipelineCallbacks]
+</span></span><span style="display:flex;"><span>        ] <span style="color:#f92672">=</span> <span style="color:#66d9ef">None</span>,
+</span></span><span style="display:flex;"><span>        callback_on_step_end_tensor_inputs: List[str] <span style="color:#f92672">=</span> [<span style="color:#e6db74">&#34;latents&#34;</span>],
+</span></span><span style="display:flex;"><span>        max_sequence_length: int <span style="color:#f92672">=</span> <span style="color:#ae81ff">512</span>,
+</span></span><span style="display:flex;"><span>    ):
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> isinstance(callback_on_step_end, (PipelineCallback, MultiPipelineCallbacks)):
+</span></span><span style="display:flex;"><span>            callback_on_step_end_tensor_inputs <span style="color:#f92672">=</span> callback_on_step_end<span style="color:#f92672">.</span>tensor_inputs
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># 1. Check inputs. Raise error if not correct</span>
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>check_inputs(
+</span></span><span style="display:flex;"><span>            prompt,
+</span></span><span style="display:flex;"><span>            negative_prompt,
+</span></span><span style="display:flex;"><span>            height,
+</span></span><span style="display:flex;"><span>            width,
+</span></span><span style="display:flex;"><span>            prompt_embeds,
+</span></span><span style="display:flex;"><span>            negative_prompt_embeds,
+</span></span><span style="display:flex;"><span>            callback_on_step_end_tensor_inputs,
+</span></span><span style="display:flex;"><span>        )
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> num_frames <span style="color:#f92672">%</span> self<span style="color:#f92672">.</span>vae_scale_factor_temporal <span style="color:#f92672">!=</span> <span style="color:#ae81ff">1</span>:
+</span></span><span style="display:flex;"><span>            logger<span style="color:#f92672">.</span>warning(
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;`num_frames - 1` has to be divisible by </span><span style="color:#e6db74">{</span>self<span style="color:#f92672">.</span>vae_scale_factor_temporal<span style="color:#e6db74">}</span><span style="color:#e6db74">. Rounding to the nearest number.&#34;</span>
+</span></span><span style="display:flex;"><span>            )
+</span></span><span style="display:flex;"><span>            num_frames <span style="color:#f92672">=</span> num_frames <span style="color:#f92672">//</span> self<span style="color:#f92672">.</span>vae_scale_factor_temporal <span style="color:#f92672">*</span> self<span style="color:#f92672">.</span>vae_scale_factor_temporal <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>        num_frames <span style="color:#f92672">=</span> max(num_frames, <span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>_guidance_scale <span style="color:#f92672">=</span> guidance_scale
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>_attention_kwargs <span style="color:#f92672">=</span> attention_kwargs
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>_current_timestep <span style="color:#f92672">=</span> <span style="color:#66d9ef">None</span>
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>_interrupt <span style="color:#f92672">=</span> <span style="color:#66d9ef">False</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        device <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>_execution_device
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># 2. Define call parameters</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> prompt <span style="color:#f92672">is</span> <span style="color:#f92672">not</span> <span style="color:#66d9ef">None</span> <span style="color:#f92672">and</span> isinstance(prompt, str):
+</span></span><span style="display:flex;"><span>            batch_size <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">elif</span> prompt <span style="color:#f92672">is</span> <span style="color:#f92672">not</span> <span style="color:#66d9ef">None</span> <span style="color:#f92672">and</span> isinstance(prompt, list):
+</span></span><span style="display:flex;"><span>            batch_size <span style="color:#f92672">=</span> len(prompt)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>            batch_size <span style="color:#f92672">=</span> prompt_embeds<span style="color:#f92672">.</span>shape[<span style="color:#ae81ff">0</span>]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># 3. Encode input prompt</span>
+</span></span><span style="display:flex;"><span>        prompt_embeds, negative_prompt_embeds <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>encode_prompt(
+</span></span><span style="display:flex;"><span>            prompt<span style="color:#f92672">=</span>prompt,
+</span></span><span style="display:flex;"><span>            negative_prompt<span style="color:#f92672">=</span>negative_prompt,
+</span></span><span style="display:flex;"><span>            do_classifier_free_guidance<span style="color:#f92672">=</span>self<span style="color:#f92672">.</span>do_classifier_free_guidance,
+</span></span><span style="display:flex;"><span>            num_videos_per_prompt<span style="color:#f92672">=</span>num_videos_per_prompt,
+</span></span><span style="display:flex;"><span>            prompt_embeds<span style="color:#f92672">=</span>prompt_embeds,
+</span></span><span style="display:flex;"><span>            negative_prompt_embeds<span style="color:#f92672">=</span>negative_prompt_embeds,
+</span></span><span style="display:flex;"><span>            max_sequence_length<span style="color:#f92672">=</span>max_sequence_length,
+</span></span><span style="display:flex;"><span>            device<span style="color:#f92672">=</span>device,
+</span></span><span style="display:flex;"><span>        )
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        transformer_dtype <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>transformer<span style="color:#f92672">.</span>dtype
+</span></span><span style="display:flex;"><span>        prompt_embeds <span style="color:#f92672">=</span> prompt_embeds<span style="color:#f92672">.</span>to(transformer_dtype)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> negative_prompt_embeds <span style="color:#f92672">is</span> <span style="color:#f92672">not</span> <span style="color:#66d9ef">None</span>:
+</span></span><span style="display:flex;"><span>            negative_prompt_embeds <span style="color:#f92672">=</span> negative_prompt_embeds<span style="color:#f92672">.</span>to(transformer_dtype)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># 4. Prepare timesteps</span>
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>scheduler<span style="color:#f92672">.</span>set_timesteps(num_inference_steps, device<span style="color:#f92672">=</span>device)
+</span></span><span style="display:flex;"><span>        timesteps <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>scheduler<span style="color:#f92672">.</span>timesteps
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># 5. Prepare latent variables</span>
+</span></span><span style="display:flex;"><span>        num_channels_latents <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>transformer<span style="color:#f92672">.</span>config<span style="color:#f92672">.</span>in_channels
+</span></span><span style="display:flex;"><span>        latents <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>prepare_latents(
+</span></span><span style="display:flex;"><span>            batch_size <span style="color:#f92672">*</span> num_videos_per_prompt,
+</span></span><span style="display:flex;"><span>            num_channels_latents,
+</span></span><span style="display:flex;"><span>            height,
+</span></span><span style="display:flex;"><span>            width,
+</span></span><span style="display:flex;"><span>            num_frames,
+</span></span><span style="display:flex;"><span>            torch<span style="color:#f92672">.</span>float32,
+</span></span><span style="display:flex;"><span>            device,
+</span></span><span style="display:flex;"><span>            generator,
+</span></span><span style="display:flex;"><span>            latents,
+</span></span><span style="display:flex;"><span>        )
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># 6. Denoising loop</span>
+</span></span><span style="display:flex;"><span>        num_warmup_steps <span style="color:#f92672">=</span> len(timesteps) <span style="color:#f92672">-</span> num_inference_steps <span style="color:#f92672">*</span> self<span style="color:#f92672">.</span>scheduler<span style="color:#f92672">.</span>order
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>_num_timesteps <span style="color:#f92672">=</span> len(timesteps)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">with</span> self<span style="color:#f92672">.</span>progress_bar(total<span style="color:#f92672">=</span>num_inference_steps) <span style="color:#66d9ef">as</span> progress_bar:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">for</span> i, t <span style="color:#f92672">in</span> enumerate(timesteps):
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> self<span style="color:#f92672">.</span>interrupt:
+</span></span><span style="display:flex;"><span>                    <span style="color:#66d9ef">continue</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                self<span style="color:#f92672">.</span>_current_timestep <span style="color:#f92672">=</span> t
+</span></span><span style="display:flex;"><span>                latent_model_input <span style="color:#f92672">=</span> latents<span style="color:#f92672">.</span>to(transformer_dtype)
+</span></span><span style="display:flex;"><span>                timestep <span style="color:#f92672">=</span> t<span style="color:#f92672">.</span>expand(latents<span style="color:#f92672">.</span>shape[<span style="color:#ae81ff">0</span>])
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                noise_pred <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>transformer(
+</span></span><span style="display:flex;"><span>                    hidden_states<span style="color:#f92672">=</span>latent_model_input,
+</span></span><span style="display:flex;"><span>                    timestep<span style="color:#f92672">=</span>timestep,
+</span></span><span style="display:flex;"><span>                    encoder_hidden_states<span style="color:#f92672">=</span>prompt_embeds,
+</span></span><span style="display:flex;"><span>                    attention_kwargs<span style="color:#f92672">=</span>attention_kwargs,
+</span></span><span style="display:flex;"><span>                    return_dict<span style="color:#f92672">=</span><span style="color:#66d9ef">False</span>,
+</span></span><span style="display:flex;"><span>                )[<span style="color:#ae81ff">0</span>]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> self<span style="color:#f92672">.</span>do_classifier_free_guidance:
+</span></span><span style="display:flex;"><span>                    noise_uncond <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>transformer(
+</span></span><span style="display:flex;"><span>                        hidden_states<span style="color:#f92672">=</span>latent_model_input,
+</span></span><span style="display:flex;"><span>                        timestep<span style="color:#f92672">=</span>timestep,
+</span></span><span style="display:flex;"><span>                        encoder_hidden_states<span style="color:#f92672">=</span>negative_prompt_embeds,
+</span></span><span style="display:flex;"><span>                        attention_kwargs<span style="color:#f92672">=</span>attention_kwargs,
+</span></span><span style="display:flex;"><span>                        return_dict<span style="color:#f92672">=</span><span style="color:#66d9ef">False</span>,
+</span></span><span style="display:flex;"><span>                    )[<span style="color:#ae81ff">0</span>]
+</span></span><span style="display:flex;"><span>                    noise_pred <span style="color:#f92672">=</span> noise_uncond <span style="color:#f92672">+</span> guidance_scale <span style="color:#f92672">*</span> (noise_pred <span style="color:#f92672">-</span> noise_uncond)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e"># compute the previous noisy sample x_t -&gt; x_t-1</span>
+</span></span><span style="display:flex;"><span>                latents <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>scheduler<span style="color:#f92672">.</span>step(noise_pred, t, latents, return_dict<span style="color:#f92672">=</span><span style="color:#66d9ef">False</span>)[<span style="color:#ae81ff">0</span>]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> callback_on_step_end <span style="color:#f92672">is</span> <span style="color:#f92672">not</span> <span style="color:#66d9ef">None</span>:
+</span></span><span style="display:flex;"><span>                    callback_kwargs <span style="color:#f92672">=</span> {}
+</span></span><span style="display:flex;"><span>                    <span style="color:#66d9ef">for</span> k <span style="color:#f92672">in</span> callback_on_step_end_tensor_inputs:
+</span></span><span style="display:flex;"><span>                        callback_kwargs[k] <span style="color:#f92672">=</span> locals()[k]
+</span></span><span style="display:flex;"><span>                    callback_outputs <span style="color:#f92672">=</span> callback_on_step_end(self, i, t, callback_kwargs)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                    latents <span style="color:#f92672">=</span> callback_outputs<span style="color:#f92672">.</span>pop(<span style="color:#e6db74">&#34;latents&#34;</span>, latents)
+</span></span><span style="display:flex;"><span>                    prompt_embeds <span style="color:#f92672">=</span> callback_outputs<span style="color:#f92672">.</span>pop(<span style="color:#e6db74">&#34;prompt_embeds&#34;</span>, prompt_embeds)
+</span></span><span style="display:flex;"><span>                    negative_prompt_embeds <span style="color:#f92672">=</span> callback_outputs<span style="color:#f92672">.</span>pop(<span style="color:#e6db74">&#34;negative_prompt_embeds&#34;</span>, negative_prompt_embeds)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e"># call the callback, if provided</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> i <span style="color:#f92672">==</span> len(timesteps) <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span> <span style="color:#f92672">or</span> ((i <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>) <span style="color:#f92672">&gt;</span> num_warmup_steps <span style="color:#f92672">and</span> (i <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>) <span style="color:#f92672">%</span> self<span style="color:#f92672">.</span>scheduler<span style="color:#f92672">.</span>order <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>):
+</span></span><span style="display:flex;"><span>                    progress_bar<span style="color:#f92672">.</span>update()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> XLA_AVAILABLE:
+</span></span><span style="display:flex;"><span>                    xm<span style="color:#f92672">.</span>mark_step()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>_current_timestep <span style="color:#f92672">=</span> <span style="color:#66d9ef">None</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> output_type <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;latent&#34;</span>:
+</span></span><span style="display:flex;"><span>            latents <span style="color:#f92672">=</span> latents<span style="color:#f92672">.</span>to(self<span style="color:#f92672">.</span>vae<span style="color:#f92672">.</span>dtype)
+</span></span><span style="display:flex;"><span>            latents_mean <span style="color:#f92672">=</span> (
+</span></span><span style="display:flex;"><span>                torch<span style="color:#f92672">.</span>tensor(self<span style="color:#f92672">.</span>vae<span style="color:#f92672">.</span>config<span style="color:#f92672">.</span>latents_mean)
+</span></span><span style="display:flex;"><span>                <span style="color:#f92672">.</span>view(<span style="color:#ae81ff">1</span>, self<span style="color:#f92672">.</span>vae<span style="color:#f92672">.</span>config<span style="color:#f92672">.</span>z_dim, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>                <span style="color:#f92672">.</span>to(latents<span style="color:#f92672">.</span>device, latents<span style="color:#f92672">.</span>dtype)
+</span></span><span style="display:flex;"><span>            )
+</span></span><span style="display:flex;"><span>            latents_std <span style="color:#f92672">=</span> <span style="color:#ae81ff">1.0</span> <span style="color:#f92672">/</span> torch<span style="color:#f92672">.</span>tensor(self<span style="color:#f92672">.</span>vae<span style="color:#f92672">.</span>config<span style="color:#f92672">.</span>latents_std)<span style="color:#f92672">.</span>view(<span style="color:#ae81ff">1</span>, self<span style="color:#f92672">.</span>vae<span style="color:#f92672">.</span>config<span style="color:#f92672">.</span>z_dim, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">1</span>)<span style="color:#f92672">.</span>to(
+</span></span><span style="display:flex;"><span>                latents<span style="color:#f92672">.</span>device, latents<span style="color:#f92672">.</span>dtype
+</span></span><span style="display:flex;"><span>            )
+</span></span><span style="display:flex;"><span>            latents <span style="color:#f92672">=</span> latents <span style="color:#f92672">/</span> latents_std <span style="color:#f92672">+</span> latents_mean
+</span></span><span style="display:flex;"><span>            video <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>vae<span style="color:#f92672">.</span>decode(latents, return_dict<span style="color:#f92672">=</span><span style="color:#66d9ef">False</span>)[<span style="color:#ae81ff">0</span>]
+</span></span><span style="display:flex;"><span>            video <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>video_processor<span style="color:#f92672">.</span>postprocess_video(video, output_type<span style="color:#f92672">=</span>output_type)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>            video <span style="color:#f92672">=</span> latents
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># Offload all models</span>
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>maybe_free_model_hooks()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> return_dict:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> (video,)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> WanPipelineOutput(frames<span style="color:#f92672">=</span>video)
+</span></span></code></pre></div>
+                </div>
+            
+        </div>
+    </div>
+</div>
+
+<style>
+.case-study {
+    background-color: rgba(255, 152, 0, 0.05);
+    border-left: 4px solid rgba(255, 152, 0, 0.7);
+    border-radius: 4px;
+    margin: 1.5rem 0;
+    padding: 1rem;
+}
+
+.case-study-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+    color: #e65100;
+}
+
+.case-icon {
+    margin-right: 0.5rem;
+    color: #e65100;
+}
+
+.tabs-header {
+    display: flex;
+    border-bottom: 1px solid rgba(255, 152, 0, 0.3);
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.tab-button {
+    background-color: rgba(255, 152, 0, 0.05);
+    border: 1px solid rgba(255, 152, 0, 0.3);
+    border-bottom: 2px solid transparent;
+    border-radius: 4px 4px 0 0;
+    padding: 0.3rem 0.9rem;
+    margin-right: 0.5rem;
+    margin-bottom: -1px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 1rem;
+    color: #777;
+    transition: all 0.2s ease;
+    min-width: 150px;
+    text-align: center;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05);
+    position: relative;
+}
+
+.tab-button::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 0;
+    background-color: rgba(255, 152, 0, 0.3);
+    transition: height 0.2s ease;
+}
+
+.tab-button:hover {
+    color: #e65100;
+    background-color: rgba(255, 152, 0, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 -3px 7px rgba(0, 0, 0, 0.1);
+}
+
+.tab-button:hover::after {
+    height: 3px;
+}
+
+.tab-button.active {
+    color: #e65100;
+    background-color: rgba(255, 152, 0, 0.3);
+    border-bottom: 3px solid #e65100;
+    transform: translateY(0);
+    z-index: 1;
+    font-weight: 700;
+}
+
+.tab-pane {
+    display: none;
+}
+
+.tab-pane.active {
+    display: block;
+}
+
+.case-study-content, .tab-pane {
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.case-study-content strong,
+.case-study-content b,
+.tab-pane strong,
+.tab-pane b {
+    font-weight: 700;
+}
+
+.case-study-content ul,
+.case-study-content ol,
+.tab-pane ul,
+.tab-pane ol {
+    padding-left: 1.5rem;
+    margin: 0.5rem 0;
+}
+
+@media (prefers-color-scheme: dark) {
+    .case-study {
+        background-color: rgba(255, 152, 0, 0.1);
+        border-left: 4px solid rgba(255, 152, 0, 0.6);
+    }
+    
+    .case-study-header, .case-icon {
+        color: #ffb74d;
+    }
+    
+    .tab-button {
+        background-color: rgba(255, 152, 0, 0.1);
+        border-color: rgba(255, 152, 0, 0.4);
+        color: #999;
+        box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+    }
+    
+    .tab-button::after {
+        background-color: rgba(255, 152, 0, 0.4);
+    }
+    
+    .tab-button.active {
+        color: #ff9800;
+        background-color: rgba(255, 152, 0, 0.35);
+        border-bottom: 3px solid #ff9800;
+        font-weight: 700;
+    }
+    
+    .tab-button:hover {
+        color: #ff9800;
+        background-color: rgba(255, 152, 0, 0.25);
+        box-shadow: 0 -3px 7px rgba(0, 0, 0, 0.25);
+    }
+}
+</style>
+
+<script>
+(function() {
+    document.addEventListener('DOMContentLoaded', function() {
+        const tabButtons = document.querySelectorAll('.tab-button');
+        
+        tabButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                
+                const tabId = this.getAttribute('data-tab');
+                
+                
+                const tabsContainer = this.closest('.case-study-tabs');
+                
+                
+                tabsContainer.querySelectorAll('.tab-button').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                tabsContainer.querySelectorAll('.tab-pane').forEach(pane => {
+                    pane.classList.remove('active');
+                });
+                
+                
+                this.classList.add('active');
+                
+                
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+    });
+})();
+</script> 
+<h2 id="performance-and-results">Performance and Results<a hidden class="anchor" aria-hidden="true" href="#performance-and-results">#</a></h2>
+<p><style>
+  .gray-text {
+    color: #808080;
+  }
+</style>
+
+
+  <img src="img/perf.png" alt="fastvideo performance comparison" style="width: 100%; height: auto;">
+
+
+Our benchmarks demonstrate that FastVideo significantly outperforms the official Wan2.1 implementation. Testing across multiple GPU configurations shows up to 3x faster video generation while maintaining the same output quality. Model loading time is reduced by up to 7x, dramatically improving startup experience. These performance gains come from transparently switching to SageAttention kernels for attention and enabling Teacache optimization.</p>
+<h2 id="getting-started">Getting Started<a hidden class="anchor" aria-hidden="true" href="#getting-started">#</a></h2>
+<p>To try FastVideo, visit our <a href="https://github.com/hao-ai-lab/FastVideo">GitHub repository</a>. Our documentation provides comprehensive guidance for installation, configuration, and integration.</p>
+<p>For those interested in technical details:</p>
+<ul>
+<li><a href="https://hao-ai-lab.github.io/blogs/sta/">Sliding Tile Attention blog post</a></li>
+<li><a href="https://hao-ai-lab.github.io/FastVideo/contributing/overview.html">Developer documentation</a></li>
+</ul>
+<!-- - [Model compatibility guide](https://github.com/hao-ai-lab/FastVideo/#supported-models) -->
+<p>Join our <a href="https://join.slack.com/t/fastvideo/shared_invite/zt-2zf6ru791-sRwI9lPIUJQq1mIeB_yjJg">Slack Community</a> and/or <a href="https://discord.gg/JA7cksDz86">Discord community</a> to share your experiences, get help, and influence the future direction of the project!</p>
+<h2 id="whats-next-for-fastvideo">What&rsquo;s Next for FastVideo?<a hidden class="anchor" aria-hidden="true" href="#whats-next-for-fastvideo">#</a></h2>
+<p>We&rsquo;re actively working on expanding FastVideo&rsquo;s capabilities in three key areas. We&rsquo;d love to hear which of these matters most to you:</p>
+<ol>
+<li><strong>More model support</strong>: Which video generation models would you like to see optimized next?</li>
+<li><strong>Training and fine-tuning</strong>: Are you interested in accelerated training for your own custom models?</li>
+<li><strong>Framework integrations</strong>: Would you like to see FastVideo in ComfyUI, A1111, or other application frameworks?</li>
+</ol>
+<p>If you&rsquo;re currently using Diffusers for video generation with one of our supported models, we&rsquo;d be especially interested in hearing about your experience migrating to FastVideo. What kind of speedups are you seeing? Have you encountered any issues?</p>
+<h2 id="acknowledgements">Acknowledgements<a hidden class="anchor" aria-hidden="true" href="#acknowledgements">#</a></h2>
+<p>FastVideo builds on contributions from many researchers and engineers. We&rsquo;re particularly grateful to the following teams and projects we learned and reused code from: <a href="https://github.com/G-U-N/Phased-Consistency-Model">PCM</a>, <a href="https://github.com/huggingface/diffusers">diffusers</a>, <a href="https://github.com/PKU-YuanGroup/Open-Sora-Plan">OpenSoraPlan</a>, <a href="https://github.com/xdit-project/xDiT">xDiT</a>, <a href="https://github.com/vllm-project/vllm">vLLM</a>, <a href="https://github.com/sgl-project/sglang">SGLang</a>, <a href="https://github.com/Wan-Video/Wan2.1/tree/main">Wan2.1</a>. The development of FastVideo V1 was partially supported by <a href="https://www.anyscale.com/">Anyscale</a> and <a href="https://ifm.mbzuai.ac.ae/">MBZUAI</a>.</p>
+<p>We also thank our early testers and community members who provided invaluable feedback throughout the development process, in particular, Jiao Dong and Yusuf Ozuysal provided invaluable feedback.</p>
+<h3 id="fastvideo-team">FastVideo Team<a hidden class="anchor" aria-hidden="true" href="#fastvideo-team">#</a></h3>
+<p>Here we want to acknowledge everyone on the FastVideo Team who contributed to FastVideo V1:</p>
+<ul>
+<li>Will Lin and Peiyuan Zhang: Project lead and architect</li>
+<li>Wei Zhou: Added Pipeline and Model Configs; Wan2.1 Pipeline; Torch compile</li>
+<li>Kevin Lin: Worked on CI/CD, Tests, ComfyUI integration and CLI</li>
+<li>Yongqi Chen: Added STA support to Wan2.1</li>
+<li>Zihang He: Added StepVideo Pipeline</li>
+<li>You Zhou: Worked on CD</li>
+<li>Wenting Zhang: Worked on ComfyUI integration</li>
+<li>Cody Yu: Helped design V1 architecture</li>
+<li>Richard Liaw: Helped design API and advised the project</li>
+<li>Hao Zhang: Advised entire project</li>
+</ul>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+    <span>&copy; 2026 Game AI Lab @ ZGCA Powered by <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a></span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+</body>
+
+</html>

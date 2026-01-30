@@ -1,0 +1,1738 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head>
+	<meta name="generator" content="Hugo 0.154.5"><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/custom.css">
+<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+<link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
+<script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+
+
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>AI&amp;Game Lab @ ZGCA</title>
+
+<meta name="description" content="">
+<meta name="author" content="">
+<link rel="canonical" href="https://igloomatics.github.io/project-aigame/en/">
+<link crossorigin="anonymous" href="/project-aigame/assets/css/stylesheet.a2f090a71ce47cc3d7aa044ba317daed08edd1fa8101fd472c3a199773f3bdeb.css" integrity="sha256-ovCQpxzkfMPXqgRLoxfa7Qjt0fqBAf1HLDoZl3Pzves=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://igloomatics.github.io/project-aigame/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://igloomatics.github.io/project-aigame/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://igloomatics.github.io/project-aigame/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://igloomatics.github.io/project-aigame/apple-touch-icon.png">
+<link rel="mask-icon" href="https://igloomatics.github.io/project-aigame/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" type="application/rss+xml" href="https://igloomatics.github.io/project-aigame/en/index.xml">
+<link rel="alternate" hreflang="zh" href="https://igloomatics.github.io/project-aigame/">
+<link rel="alternate" hreflang="en" href="https://igloomatics.github.io/project-aigame/en/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(255, 255, 255);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-T4DXGLCH1D"></script>
+      <script>
+        var doNotTrack = false;
+        if ( true ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-T4DXGLCH1D');
+        }
+      </script><meta property="og:title" content="AI&amp;Game Lab @ ZGCA" />
+<meta property="og:description" content="" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://igloomatics.github.io/project-aigame/en/" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="AI&amp;Game Lab @ ZGCA"/>
+<meta name="twitter:description" content=""/>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "AI\u0026Game Lab @ ZGCA",
+  "url": "https://igloomatics.github.io/project-aigame/en/",
+  "description": "",
+  "thumbnailUrl": "https://igloomatics.github.io/project-aigame/favicon.ico",
+  "sameAs": [
+      
+  ]
+}
+</script>
+    
+    	<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<script>
+  MathJax = {
+    tex: {
+      displayMath: [['\\[', '\\]'], ['$$', '$$']],  
+      inlineMath: [['\\(', '\\)'], ['$', '$']]      
+    }
+  };
+</script>
+
+    
+</head>
+
+<body class="list" id="top"><head>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://igloomatics.github.io/project-aigame/en/" accesskey="h" title="AI&amp;Game Lab @ ZGCA (Alt + H)">
+                <img id="logo-image" src="/project-aigame/img/AIGameLab.day.png" alt="AI&amp;Game Lab @ ZGCA" height="100">
+            </a>
+            <div class="logo-switches">
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                  <a href="https://igloomatics.github.io/en/project-aigame/" title="Home">
+                      <span>Home</span>
+                  </a>
+            </li>
+            <li>
+                  <a href="https://igloomatics.github.io/en/project-aigame/news/" title="News">
+                      <span>News</span>
+                  </a>
+            </li>
+            <li>
+                  <a href="https://igloomatics.github.io/en/project-aigame/projects/" title="Projects">
+                      <span>Projects</span>
+                  </a>
+            </li>
+            <li>
+                  <a href="https://igloomatics.github.io/en/project-aigame/publications/" title="Publications">
+                      <span>Publications</span>
+                  </a>
+            </li>
+            <li>
+                  <a href="https://igloomatics.github.io/en/project-aigame/people/" title="Members">
+                      <span>Members</span>
+                  </a>
+            </li>
+            <li>
+                  <a href="https://igloomatics.github.io/en/project-aigame/contact/" title="Join us">
+                      <span>Join us</span>
+                  </a>
+            </li>
+
+            <li style="display: flex; align-items: center; margin-left: 10px;">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+                
+                <span style="margin: 0 8px;">|</span>
+                <div class="lang-switch">
+                    <ul>
+                    <li>
+                        <a href="https://igloomatics.github.io/project-aigame/" title="中文"
+                            aria-label="中文">Zh</a>
+                    </li>
+                    </ul>
+                </div>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<script>
+    function updateThemeAndLogo() {
+        
+        document.body.classList.toggle('dark');
+
+        
+        const isDarkTheme = document.body.classList.contains('dark');
+        const logoImage = document.getElementById('logo-image');
+        logoImage.src = isDarkTheme ? '\/project-aigame\/img\/AIGameLab.night.png' : '\/project-aigame\/img\/AIGameLab.day.png';
+
+        
+        const themePreference = isDarkTheme ? 'dark' : 'light';
+        localStorage.setItem('pref-theme', themePreference);
+    }
+
+    function applyCurrentThemeAndLogo() {
+        
+        const isDarkTheme = document.body.classList.contains('dark');
+
+        
+        const logoImage = document.getElementById('logo-image');
+        logoImage.src = isDarkTheme ? '\/project-aigame\/img\/AIGameLab.night.png' : '\/project-aigame\/img\/AIGameLab.day.png';
+    }
+
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        const themeToggleButton = document.getElementById('theme-toggle');
+        if (themeToggleButton) {
+            themeToggleButton.addEventListener('click', updateThemeAndLogo);
+        }
+
+        
+        
+        const savedTheme = localStorage.getItem('pref-theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        document.body.classList.toggle('dark', savedTheme === 'dark');
+    });
+
+    
+    const themeToggleButton = document.getElementById('theme-toggle');
+    if (themeToggleButton) {
+        themeToggleButton.addEventListener('click', () => {
+            updateThemeAndLogo(); 
+        });
+        
+        applyCurrentThemeAndLogo();
+    }
+</script>
+
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-T4DXGLCH1D"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-T4DXGLCH1D');
+</script><main class="main">
+  <style>
+    #snake-canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+        opacity: 0.1;  
+        pointer-events: none;
+    }
+</style>
+<canvas id="snake-canvas"></canvas>
+<script>
+    (function() {
+        const canvas = document.getElementById('snake-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        let width, height;
+        const gridSize = 20;
+        let snake = [];
+        let food = {};
+        let direction = 'right';
+        let gameLoop;
+        
+        function resize() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+        }
+        
+        window.addEventListener('resize', resize);
+        resize();
+        
+        function initGame() {
+            snake = [
+                {x: 10, y: 10},
+                {x: 9, y: 10},
+                {x: 8, y: 10}
+            ];
+            spawnFood();
+            direction = 'right';
+        }
+        
+        function spawnFood() {
+            food = {
+                x: Math.floor(Math.random() * (width / gridSize)),
+                y: Math.floor(Math.random() * (height / gridSize))
+            };
+        }
+        
+        function update() {
+            
+            const head = snake[0];
+            
+            
+            if (head.x < food.x) direction = 'right';
+            else if (head.x > food.x) direction = 'left';
+            else if (head.y < food.y) direction = 'down';
+            else if (head.y > food.y) direction = 'up';
+            
+            
+            let newHead = {x: head.x, y: head.y};
+            if (direction === 'right') newHead.x++;
+            else if (direction === 'left') newHead.x--;
+            else if (direction === 'down') newHead.y++;
+            else if (direction === 'up') newHead.y--;
+            
+            
+            if (newHead.x * gridSize >= width) newHead.x = 0;
+            if (newHead.x < 0) newHead.x = Math.floor(width / gridSize) - 1;
+            if (newHead.y * gridSize >= height) newHead.y = 0;
+            if (newHead.y < 0) newHead.y = Math.floor(height / gridSize) - 1;
+            
+            snake.unshift(newHead);
+            
+            
+            if (Math.abs(newHead.x - food.x) < 1 && Math.abs(newHead.y - food.y) < 1) {
+                spawnFood();
+            } else {
+                snake.pop();
+            }
+        }
+        
+        function draw() {
+            ctx.clearRect(0, 0, width, height);
+            
+            
+            ctx.fillStyle = document.body.classList.contains('dark') ? '#4ade80' : '#22c55e';
+            snake.forEach(segment => {
+                ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize - 2, gridSize - 2);
+            });
+            
+            
+            ctx.fillStyle = document.body.classList.contains('dark') ? '#f87171' : '#ef4444';
+            ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize - 2, gridSize - 2);
+        }
+        
+        function loop() {
+            update();
+            draw();
+            setTimeout(() => requestAnimationFrame(loop), 100);
+        }
+        
+        initGame();
+        loop();
+    })();
+</script>
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+     
+        <article class="post-single" style="position: relative; z-index: 1;">
+            <header class="post-header">
+    	      
+              <h1 class="post-title entry-hint-parent">
+                
+              </h1>
+              <div class="post-meta">
+
+</div>
+            </header> 
+            <div class="post-content">
+              <!-- <style>
+  .gray-text {
+    color: #808080;
+  }
+</style>
+
+
+  <figure>
+	  <div style="display: grid; place-items: center;">
+      <img src="/img/HAOAILAB_LOGO.jpg" alt="Lab Group Photo" style="width: 50%; height: auto;">
+      <figcaption style="font-size: 16px;" class="gray-text">Hao AI Lab @ UCSD</figcaption>
+    </div>
+  </figure>
+
+ -->
+<style>
+ 
+:root {
+  --quote-border-color: #2D4366;
+}
+
+:root .dark {
+  --quote-border-color: #4ecdc4;
+}
+
+.mission-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3rem;
+  margin: 0 auto 3em auto;
+  max-width: 1150px;
+}
+
+.quote-block {
+  position: relative;
+  padding: 3em;
+  flex: 1.5;
+  min-width: 300px;
+  font-family: Georgia, serif;
+  font-size: 1.2em;
+  line-height: 1.7;
+}
+
+.quote-block::before,
+.quote-block::after {
+  position: absolute;
+  width: 40px;
+  height: 30px;
+  border: 8px solid;
+  border-color: var(--quote-border-color);
+  content: "";
+}
+
+.quote-block::before {
+  top: 0;
+  left: 0;
+  border-right: none;
+  border-bottom: none;
+}
+
+.quote-block::after {
+  bottom: 0;
+  right: 0;
+  border-left: none;
+  border-top: none;
+}
+
+.mission-media-area {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+}
+
+.mission-image-stack {
+  position: relative;
+  width: 100%;
+  max-width: 350px;
+  aspect-ratio: 1 / 1;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 0 30px rgba(0,0,0,0.15);
+  background-color: var(--theme);
+}
+
+.mission-img-item {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.5s ease;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.mission-img-item.active {
+  opacity: 1;
+  visibility: visible;
+  z-index: 2;
+}
+
+.mission-img-item a {
+  display: block;
+  width: 100%;
+  height: 100%;
+  margin: 0 !important;
+  padding: 0 !important;
+  text-decoration: none !important;
+  border: none !important;
+}
+
+.mission-img-item img {
+  width: 100% !important;
+  height: 100% !important;
+  display: block !important;
+  object-fit: cover !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  transition: transform 0.3s ease;
+}
+
+.mission-img-item img:hover {
+  transform: scale(1.03);
+}
+
+.mission-nav-dots {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding: 10px 0;
+  flex-shrink: 0;
+}
+
+.nav-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: #333;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  border: 1px solid rgba(0,0,0,0.1);
+  box-sizing: border-box;
+  position: relative;
+}
+
+ 
+.nav-dot:hover {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path d="M12 12 L21 6 A10 10 0 1 0 21 18 Z" fill="%23fff43c" stroke="black" stroke-width="1"/><circle cx="12" cy="6" r="1.5" fill="black"/><path d="M18 1 L20 1 L20 7 L18 7 Z M18 9 L20 9 L20 11 L18 11 Z" fill="red" stroke="white" stroke-width="0.5"/></svg>') 2 12, pointer;
+}
+
+.nav-dot::before {
+  content: "";
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  right: -10px;
+  bottom: -10px;
+}
+
+.nav-dot.active {
+  background-color: #fff43c !important;
+}
+
+.dark .nav-dot {
+  background-color: #888;
+}
+
+.dark .nav-dot.active {
+  background-color: #fff43c !important;
+}
+
+@media screen and (max-width: 850px) {
+  .mission-container {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .mission-media-area {
+    width: 100%;
+    justify-content: center;
+  }
+}
+</style>
+
+<div class="mission-container">
+    <div class="quote-block">
+        Welcome to the ZGCA AI&amp;Game Lab website! We are devoted to exploring the future combination of games and AI. We regard games as the best training ground for AI evolution, use AI to reshape game development productivity, and are simultaneously committed to breaking script limitations to bring a personalized intelligent interaction experience to players. We are affiliated with <a href="https://www.bjzgca.edu.cn/">Beijing Zhongguancun Academy</a>.
+    </div>
+    
+    <div class="mission-media-area">
+        <div class="mission-image-stack">
+            
+            <div class="mission-img-item active" data-index="0">
+                <a href="https://gallery.liruochen.cn/" target="_blank">
+                <img src="/project-aigame/img/show/tryourgames.jpg" alt="Mission Image 1">
+                </a>
+            </div>
+            
+            
+            
+            <div class="mission-img-item" data-index="1">
+                
+                <img src="/project-aigame/img/QRcode.jpg" alt="Mission Image 2">
+                
+            </div>
+            
+        </div>
+
+        
+        <div class="mission-nav-dots">
+            <div class="nav-dot active" data-index="0" onclick="switchMissionImage(this, 0)"></div>
+            <div class="nav-dot" data-index="1" onclick="switchMissionImage(this, 1)"></div>
+        </div>
+        
+    </div>
+</div>
+
+<script>
+window.switchMissionImage = function(dotElement, index) {
+    if (window.event) window.event.stopPropagation();
+    const container = dotElement.closest('.mission-container');
+    if (!container) return;
+    
+    const dots = container.querySelectorAll('.nav-dot');
+    const items = container.querySelectorAll('.mission-img-item');
+    
+    dots.forEach((dot, i) => {
+        if (i === index) dot.classList.add('active');
+        else dot.classList.remove('active');
+    });
+    
+    items.forEach((item, i) => {
+        if (i === index) {
+            item.classList.add('active');
+        } else {
+            item.classList.remove('active');
+        }
+    });
+};
+</script>
+
+<div class="research-directions">
+    <div class="direction-card">
+        <div class="icon">
+            <i class="fas fa-gamepad"></i>
+        </div>
+        <h3>Game for AI</h3>
+        <p>Regard games as benchmark to test AI capability boundaries. Including but not limited to: Reinforcement Learning, Multi-Agent Systems, Large Language Models, Multimodal Models, Embodied AI, etc.</p>
+    </div>
+    <div class="direction-card">
+        <div class="icon">
+            <i class="fas fa-paint-brush"></i>
+        </div>
+        <h3>AI for Game</h3>
+        <p>Leverage AI to create game development tools, improving quality and reducing costs in game development and operations. Including but not limited to: 2D/3D Art Asset Development, Unity/UE Code Agents, Game Marketing Video Generation, etc.</p>
+    </div>
+    <div class="direction-card">
+        <div class="icon">
+            <i class="fas fa-comments"></i>
+        </div>
+        <h3>AI in Game</h3>
+        <p>Create fun AI-native games with the goal of future commercialization. Similar products on the market: Pepper Simulator, 1001 Nights, etc.</p>
+    </div>
+</div>
+
+<style>
+.research-directions {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    margin-top: 40px;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+}
+
+.direction-card {
+    flex: 1;
+    min-width: 250px;
+    background: var(--entry);
+    padding: 30px 20px;
+    border-radius: 10px 0 10px 0;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid var(--border);
+}
+
+.direction-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+}
+
+.direction-card .icon {
+    font-size: 3rem;
+    color: var(--primary);
+    margin-bottom: 20px;
+}
+
+.direction-card h3 {
+    font-size: 1.25rem;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+.direction-card p {
+    font-size: 0.95rem;
+    color: var(--secondary);
+    line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+    .research-directions {
+        flex-direction: column;
+    }
+}
+</style>
+<h3 id="news">News</h3>
+<div class="news-section">
+    
+
+
+
+
+<div class="news-entry">
+    <div class="news-header">
+        <span class="news-date">2025-11</span>
+        <a href="/project-aigame/en/news/ai&#43;%E6%B8%B8%E6%88%8F%E9%A1%B9%E7%9B%AE%E7%BB%84%E6%AD%A3%E5%BC%8F%E7%AB%8B%E9%A1%B9/" class="news-title">
+            AI+游戏项目组正式立项
+        </a>
+    </div>
+</div>
+
+<div class="news-entry">
+    <div class="news-header">
+        <span class="news-date">2025-11</span>
+        <a href="/project-aigame/en/news/%E5%9B%A2%E9%98%9Faaai%E4%B8%AD%E7%A8%BF/" class="news-title">
+            🎉AI&amp;Game团队斩获一篇AAAI录用！
+        </a>
+    </div>
+</div>
+
+<div class="news-entry">
+    <div class="news-header">
+        <span class="news-date">2025-10</span>
+        <a href="/project-aigame/en/news/%E6%99%BA%E6%B8%B8%E9%95%9Cai%E6%B8%B8%E6%88%8F%E7%A0%94%E7%A9%B6%E5%9B%A2%E9%98%9F%E6%B0%91%E9%97%B4%E5%85%AC%E4%BC%97%E5%8F%B7%E6%AD%A3%E5%BC%8F%E4%B8%8A%E7%BA%BF/" class="news-title">
+            智游镜——AI游戏研究团队民间公众号正式上线！
+        </a>
+    </div>
+</div>
+
+
+
+
+</div>
+
+<style>
+.news-section {
+    margin: 2rem 0;
+    border-left: 2px solid #eee;  
+    padding-left: 1.5rem;
+}
+
+.news-entry {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1.5rem;
+    position: relative;
+}
+
+ 
+.news-entry::before {
+    content: "";
+    position: absolute;
+    left: -1.85rem;  
+    top: 0.4rem;
+    width: 0.6rem;
+    height: 0.6rem;
+    background-color: #ccc;
+    border-radius: 50%;
+    border: 2px solid #fff;  
+}
+
+.news-header {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    margin-bottom: 0.2rem;
+}
+
+.news-title {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: inherit;
+    text-decoration: none;
+     
+    padding-bottom: 2px;
+}
+
+.news-title:hover {
+    color: var(--primary);
+     
+    text-decoration: underline;
+}
+
+.news-date {
+    font-size: 0.85rem;  
+    color: #666;
+    white-space: nowrap;
+     
+}
+
+.news-text {
+    font-size: 1rem;
+    color: #333;
+}
+
+ 
+@media (prefers-color-scheme: dark) {
+    .news-section {
+        border-left-color: #444;
+    }
+    .news-entry::before {
+        background-color: #666;
+        border-color: #1d1e20;
+    }
+    .news-title {
+        border-bottom-color: #666;
+    }
+    .news-date {
+        color: #aaa;
+    }
+    .news-text {
+        color: #ddd;
+    }
+}
+</style> 
+
+<!-- &emsp;
+
+
+## **Project Highlight**
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Project Highlights</title>
+  <style>
+     
+    .project-highlights {
+      margin-bottom: 60px;
+    }
+    .project-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 30px;
+      margin-bottom: 30px;
+    }
+     
+    .project-card {
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(95, 95, 95, 0.1);
+      overflow: hidden;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      background-color: #fff;
+    }
+    .project-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    }
+    .project-image {
+      height: 200px;
+      object-fit: cover;
+      border-bottom: 1px solid #ddd;
+      width: 100%;
+    }
+    .card-body {
+      padding: 5px 5px 15px 5px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+      margin-top: 0;
+    }
+     
+    .project-card .card-body .project-title {
+      font-size: 25px;
+      font-weight: bold;
+      margin: 10px;
+      color: #333;
+      display: block;
+      width: 90%;
+    }
+    
+    .project-date {
+      font-size: 12px;
+      color: #777;
+      margin-bottom: 15px;
+    }
+    .project-button {
+      background-color: #007bff;
+      border: none;
+      border-radius: 5px;
+      padding: 10px 20px;
+      font-size: 14px;
+      transition: background-color 0.3s ease;
+      cursor: pointer;
+      color: #fff;
+      margin-top: auto;
+      width: 50%;
+      align-self: center;
+      
+    }
+    .project-button:hover {
+      background-color: #0056b3;
+    }
+    .more-button-container {
+      text-align: center;
+      margin-top: 20px;
+    }
+    .more-button {
+      background-color: #007bff;
+      border: none;
+      border-radius: 5px;
+      padding: 12px 30px;
+      font-size: 16px;
+      transition: background-color 0.3s ease;
+      cursor: pointer;
+      color: #fff !important;
+      text-decoration: none !important;
+      display: inline-block;
+    }
+    .more-button:hover,
+    .more-button:visited,
+    .more-button:active {
+       
+      color: #fff !important;
+      text-decoration: none !important;
+    }
+
+    #readFullPost{
+      text-decoration: none !important;
+      color: #fff !important;
+    }
+
+    .more-button:hover {
+      background-color: #0056b3;
+    }
+
+     
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1050;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+    .modal.show {
+      display: block;
+    }
+    .modal-dialog {
+      position: relative;
+      margin: 10% auto;
+      max-width: 800px;
+    }
+    .modal-content {
+      background-color: #fff;
+      border: 1px solid #888;
+      border-radius: 5px;
+      box-shadow: 0 3px 9px rgba(0, 0, 0, 0.5);
+      animation: fadeIn 0.3s;
+      color: #333;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-50px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .modal-header, .modal-body, .modal-footer {
+      padding: 1rem;
+    }
+    .modal-header {
+      border-bottom: 1px solid #dee2e6;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #fff;
+      color: #333;
+    }
+    .modal-body {
+      background-color: #fff;
+      color: #333;
+    }
+    .modal-footer {
+      border-top: 1px solid #dee2e6;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      background-color: #fff;
+    }
+    .modal-title {
+      color: #333;
+      
+    }
+    #modalTitle {
+      font-size: 25px;
+    }
+    #modalContent {
+      color: #333;
+    }
+    #modalDate {
+      color: #777;
+    }
+     
+    .btn {
+      display: inline-block;
+      font-weight: 400;
+      text-align: center;
+      vertical-align: middle;
+      padding: 0.375rem 0.75rem;
+      font-size: 1rem;
+      line-height: 1.5;
+      border: 1px solid transparent;
+      border-radius: 0.25rem;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .btn-primary {
+      color: #fff;
+      background-color: #007bff;
+      border-color: #007bff;
+    }
+    .btn-primary:hover {
+      background-color: #0056b3;
+      border-color: #0056b3;
+    }
+    .btn-secondary {
+      color: #fff;
+      background-color: #6c757d;
+      border-color: #6c757d;
+    }
+    .btn-secondary:hover {
+      background-color: #5a6268;
+      border-color: #545b62;
+    }
+    .btn-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+     
+    @media (max-width: 768px) {
+      .project-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  
+  
+
+  
+  <section class="project-highlights">
+    <div class="project-grid">
+      
+    </div>
+    
+    
+    <div class="more-button-container">
+      <a href="/project-aigame/projects/" class="more-button">View All Projects</a>
+    </div>
+  </section>
+
+  
+  <div class="modal fade" id="blogModal" tabindex="-1" aria-labelledby="modalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalTitle"></h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <img id="modalImage" src="" class="img-fluid mb-3" alt="" style="width:100%; height:auto;"/>
+          <p class="project-date" id="modalDate"></p>
+          <div id="modalContent"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <a id="readFullPost" href="#" class="btn btn-primary">Read Full Post</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  <script>
+    var blogData = [
+    
+    ];
+    var currentIndex = 0;
+    function openModal(index) {
+      currentIndex = index;
+      updateModalContent();
+      showModal();
+    }
+    function updateModalContent() {
+      var data = blogData[currentIndex];
+      document.getElementById("modalTitle").innerText = data.title;
+      document.getElementById("modalImage").src = data.image;
+      document.getElementById("modalImage").alt = data.alt;
+      document.getElementById("modalDate").innerText = data.date;
+      document.getElementById("modalContent").innerHTML = data.content;
+      
+      document.getElementById("readFullPost").href = data.url;
+    }
+    
+     
+    function showModal() {
+      document.getElementById("blogModal").classList.add("show");
+    }
+    function closeModal() {
+      document.getElementById("blogModal").classList.remove("show");
+    }
+    
+    
+    document.addEventListener("DOMContentLoaded", function() {
+      var closeElements = document.querySelectorAll('[data-bs-dismiss="modal"]');
+      closeElements.forEach(function(el) {
+        el.addEventListener("click", closeModal);
+      });
+    });
+  </script>
+</body>
+</html>
+
+
+
+&emsp;
+
+## **Talks**
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Talks Grid</title>
+  <style>
+    .talks-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 30px;
+      margin-bottom: 30px;
+    }
+
+    .talk-card {
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(95, 95, 95, 0.1);
+      overflow: hidden;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      background-color: #fff;
+    }
+
+    .talk-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    .video-container {
+      width: 100%;
+      position: relative;
+      padding-bottom: 56.25%;  
+      height: 0;
+      overflow: hidden;
+    }
+
+    .video-container iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+
+    .card-body {
+      padding: 15px;
+      text-align: center;
+    }
+
+    .card-title {
+      font-size: 1.2em;
+      margin-bottom: 10px;
+      color: #333;
+    }
+
+    .more-button-container {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .more-button {
+      background-color: #007bff;
+      border: none;
+      border-radius: 5px;
+      padding: 12px 30px;
+      font-size: 16px;
+      transition: background-color 0.3s ease;
+      cursor: pointer;
+      color: #fff !important;
+      text-decoration: none !important;
+      display: inline-block;
+    }
+
+    .more-button:hover {
+      background-color: #0056b3;
+    }
+
+    @media (max-width: 768px) {
+      .talks-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <section class="talks-section">
+    <div class="talks-grid">
+      
+      <div class="talk-card">
+        <div class="video-container">
+          <iframe 
+            src="https://www.youtube.com/embed/Yb9MiSInuEs?si=Uvcvdq4beejR5iiC" 
+            title="Talk at GPU Mode: Lmgame 08/2025" 
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+            allowfullscreen>
+          </iframe>
+        </div>
+        <div class="card-body">
+          <h4 class="card-title">Talk at GPU Mode: Lmgame 08/2025</h4>
+        </div>
+      </div>
+      
+      <div class="talk-card">
+        <div class="video-container">
+          <iframe 
+            src="https://www.youtube.com/embed/tquHfKqKo1s?si=A-FmM98QZsbbz90a" 
+            title="Talk at GPU Mode: FastVideo 05/2025" 
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+            allowfullscreen>
+          </iframe>
+        </div>
+        <div class="card-body">
+          <h4 class="card-title">Talk at GPU Mode: FastVideo 05/2025</h4>
+        </div>
+      </div>
+      
+      <div class="talk-card">
+        <div class="video-container">
+          <iframe 
+            src="https://www.youtube.com/embed/tIPDwUepXcA?si=mvRaDhvQL6UTY8ux" 
+            title="Talk at GPU Mode: DistServe 05/2025" 
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+            allowfullscreen>
+          </iframe>
+        </div>
+        <div class="card-body">
+          <h4 class="card-title">Talk at GPU Mode: DistServe 05/2025</h4>
+        </div>
+      </div>
+      
+      <div class="talk-card">
+        <div class="video-container">
+          <iframe 
+            src="https://www.youtube.com/embed/znd7o-EBSKU?si=ao755-0iUItpYAG6" 
+            title="Talk at Faster LLM Inference Seminar @ Weizmann Institute of Science 02/2025" 
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+            allowfullscreen>
+          </iframe>
+        </div>
+        <div class="card-body">
+          <h4 class="card-title">Talk at Faster LLM Inference Seminar @ Weizmann Institute of Science 02/2025</h4>
+        </div>
+      </div>
+      
+    </div>
+    
+    
+    <div class="more-button-container">
+      <a href="/talks/" class="more-button">View All Talks</a>
+    </div>
+  </section>
+</body>
+</html>
+ -->
+<p> </p>
+<h3 id="partnership">Partnership</h3>
+
+<div class="sponsor-grid">
+    
+  
+  
+  <div class="sponsor-item">
+      <div class="sponsor-logo">
+          <a href="https://www.timi.qq.com/" target="_blank">
+              
+              
+              
+              
+              
+  
+              <img src="/project-aigame/icons/timi.png" alt="Sponsor Logo" class="light-mode-logo" />
+              <img src="/project-aigame/icons/timi.png" alt="Sponsor Logo" class="dark-mode-logo" />
+          </a>
+      </div>
+  </div>
+  
+  <style>
+  .sponsor-item {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+  }
+  
+  .sponsor-logo {
+      width: 100%;
+      max-width: 200px;
+  }
+  
+  .sponsor-logo img {
+      width: 100%;
+      height: auto;
+      transition: opacity 0.3s ease;
+  }
+  
+   
+  body.dark .light-mode-logo {
+      display: none;
+  }
+  
+  body:not(.dark) .dark-mode-logo {
+      display: none;
+  }
+  
+   
+  @media (max-width: 768px) {
+      .sponsor-logo {
+          max-width: 150px;
+      }
+  }
+  
+  @media (max-width: 480px) {
+      .sponsor-logo {
+          max-width: 120px;
+      }
+  }
+  </style>
+
+  
+  
+  <div class="sponsor-item">
+      <div class="sponsor-logo">
+          <a href="https://morefun.qq.com/" target="_blank">
+              
+              
+              
+              
+              
+  
+              <img src="/project-aigame/icons/morefun.png" alt="Sponsor Logo" class="light-mode-logo" />
+              <img src="/project-aigame/icons/morefun.png" alt="Sponsor Logo" class="dark-mode-logo" />
+          </a>
+      </div>
+  </div>
+  
+  <style>
+  .sponsor-item {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+  }
+  
+  .sponsor-logo {
+      width: 100%;
+      max-width: 200px;
+  }
+  
+  .sponsor-logo img {
+      width: 100%;
+      height: auto;
+      transition: opacity 0.3s ease;
+  }
+  
+   
+  body.dark .light-mode-logo {
+      display: none;
+  }
+  
+  body:not(.dark) .dark-mode-logo {
+      display: none;
+  }
+  
+   
+  @media (max-width: 768px) {
+      .sponsor-logo {
+          max-width: 150px;
+      }
+  }
+  
+  @media (max-width: 480px) {
+      .sponsor-logo {
+          max-width: 120px;
+      }
+  }
+  </style>
+
+  
+  
+  <div class="sponsor-item">
+      <div class="sponsor-logo">
+          <a href="https://gameinstitute.qq.com/" target="_blank">
+              
+              
+              
+              
+              
+  
+              <img src="/project-aigame/icons/instituteofgames.png" alt="Sponsor Logo" class="light-mode-logo" />
+              <img src="/project-aigame/icons/instituteofgames.png" alt="Sponsor Logo" class="dark-mode-logo" />
+          </a>
+      </div>
+  </div>
+  
+  <style>
+  .sponsor-item {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+  }
+  
+  .sponsor-logo {
+      width: 100%;
+      max-width: 200px;
+  }
+  
+  .sponsor-logo img {
+      width: 100%;
+      height: auto;
+      transition: opacity 0.3s ease;
+  }
+  
+   
+  body.dark .light-mode-logo {
+      display: none;
+  }
+  
+  body:not(.dark) .dark-mode-logo {
+      display: none;
+  }
+  
+   
+  @media (max-width: 768px) {
+      .sponsor-logo {
+          max-width: 150px;
+      }
+  }
+  
+  @media (max-width: 480px) {
+      .sponsor-logo {
+          max-width: 120px;
+      }
+  }
+  </style>
+
+  
+  
+  <div class="sponsor-item">
+      <div class="sponsor-logo">
+          <a href="https://www.netease.com/" target="_blank">
+              
+              
+              
+              
+              
+  
+              <img src="/project-aigame/icons/netease.png" alt="Sponsor Logo" class="light-mode-logo" />
+              <img src="/project-aigame/icons/netease.png" alt="Sponsor Logo" class="dark-mode-logo" />
+          </a>
+      </div>
+  </div>
+  
+  <style>
+  .sponsor-item {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+  }
+  
+  .sponsor-logo {
+      width: 100%;
+      max-width: 200px;
+  }
+  
+  .sponsor-logo img {
+      width: 100%;
+      height: auto;
+      transition: opacity 0.3s ease;
+  }
+  
+   
+  body.dark .light-mode-logo {
+      display: none;
+  }
+  
+  body:not(.dark) .dark-mode-logo {
+      display: none;
+  }
+  
+   
+  @media (max-width: 768px) {
+      .sponsor-logo {
+          max-width: 150px;
+      }
+  }
+  
+  @media (max-width: 480px) {
+      .sponsor-logo {
+          max-width: 120px;
+      }
+  }
+  </style>
+
+  
+  
+  <div class="sponsor-item">
+      <div class="sponsor-logo">
+          <a href="http://www.tuyoo.com/" target="_blank">
+              
+              
+              
+              
+              
+  
+              <img src="/project-aigame/icons/tuyoo.png" alt="Sponsor Logo" class="light-mode-logo" />
+              <img src="/project-aigame/icons/tuyoo.png" alt="Sponsor Logo" class="dark-mode-logo" />
+          </a>
+      </div>
+  </div>
+  
+  <style>
+  .sponsor-item {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+  }
+  
+  .sponsor-logo {
+      width: 100%;
+      max-width: 200px;
+  }
+  
+  .sponsor-logo img {
+      width: 100%;
+      height: auto;
+      transition: opacity 0.3s ease;
+  }
+  
+   
+  body.dark .light-mode-logo {
+      display: none;
+  }
+  
+  body:not(.dark) .dark-mode-logo {
+      display: none;
+  }
+  
+   
+  @media (max-width: 768px) {
+      .sponsor-logo {
+          max-width: 150px;
+      }
+  }
+  
+  @media (max-width: 480px) {
+      .sponsor-logo {
+          max-width: 120px;
+      }
+  }
+  </style>
+
+
+</div>
+
+<style>
+.sponsor-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);  
+    gap: 2rem;
+    justify-items: center;
+    align-items: center;
+    padding: 1rem;
+}
+
+ 
+@media (max-width: 768px) {
+    .sponsor-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+    }
+}
+
+ 
+@media (max-width: 480px) {
+    .sponsor-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+}
+
+.sponsor-logo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.sponsor-logo img {
+    object-fit: contain;
+    max-width: 100%;
+    height: auto;
+}
+</style>
+
+
+            </div>
+        </article>
+    
+  
+    
+  
+    
+  
+
+    </main>
+    
+<footer class="footer">
+    <span>&copy; 2026 AI&Game Lab @ ZGCA Powered by <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a></span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+</body>
+
+</html>
