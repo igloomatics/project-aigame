@@ -2,17 +2,17 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>AI&amp;Game Lab @ ZGCA</title>
-    <link>https://igloomatics.github.io/project-aigame/</link>
+    <link>https://gitee.com/zgc-webcompetition/aigame-lab/</link>
     <description>Recent content on AI&amp;Game Lab @ ZGCA</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh</language>
     <lastBuildDate>Fri, 21 Nov 2025 00:00:00 +0000</lastBuildDate>
-    <atom:link href="https://igloomatics.github.io/project-aigame/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://gitee.com/zgc-webcompetition/aigame-lab/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>可交互数字智能创新平台构建与应用研究项目组正式立项</title>
-      <link>https://igloomatics.github.io/project-aigame/news/ai&#43;%E6%B8%B8%E6%88%8F%E9%A1%B9%E7%9B%AE%E7%BB%84%E6%AD%A3%E5%BC%8F%E7%AB%8B%E9%A1%B9/</link>
+      <link>https://gitee.com/zgc-webcompetition/aigame-lab/news/ai&#43;%E6%B8%B8%E6%88%8F%E9%A1%B9%E7%9B%AE%E7%BB%84%E6%AD%A3%E5%BC%8F%E7%AB%8B%E9%A1%B9/</link>
       <pubDate>Fri, 21 Nov 2025 00:00:00 +0000</pubDate>
-      <guid>https://igloomatics.github.io/project-aigame/news/ai&#43;%E6%B8%B8%E6%88%8F%E9%A1%B9%E7%9B%AE%E7%BB%84%E6%AD%A3%E5%BC%8F%E7%AB%8B%E9%A1%B9/</guid>
+      <guid>https://gitee.com/zgc-webcompetition/aigame-lab/news/ai&#43;%E6%B8%B8%E6%88%8F%E9%A1%B9%E7%9B%AE%E7%BB%84%E6%AD%A3%E5%BC%8F%E7%AB%8B%E9%A1%B9/</guid>
       <description>&lt;p&gt;我们的项目 &lt;strong&gt;可交互数字智能创新平台构建与应用研究&lt;/strong&gt;（AI&amp;amp;Game） 终于在ZGCA正式立项了！欢迎加入我们的团队（打广告ing）！&lt;/p&gt;
 &lt;p&gt;在我们团队里，你可以：&lt;/p&gt;
 &lt;ul&gt;
@@ -26,16 +26,16 @@
     </item>
     <item>
       <title>🎉AI&amp;Game团队斩获一篇AAAI录用！</title>
-      <link>https://igloomatics.github.io/project-aigame/news/%E5%9B%A2%E9%98%9Faaai%E4%B8%AD%E7%A8%BF/</link>
+      <link>https://gitee.com/zgc-webcompetition/aigame-lab/news/%E5%9B%A2%E9%98%9Faaai%E4%B8%AD%E7%A8%BF/</link>
       <pubDate>Wed, 12 Nov 2025 00:00:00 +0000</pubDate>
-      <guid>https://igloomatics.github.io/project-aigame/news/%E5%9B%A2%E9%98%9Faaai%E4%B8%AD%E7%A8%BF/</guid>
+      <guid>https://gitee.com/zgc-webcompetition/aigame-lab/news/%E5%9B%A2%E9%98%9Faaai%E4%B8%AD%E7%A8%BF/</guid>
       <description>&lt;p&gt;🎉🎉恭喜我们团队的梁思睿同学的&lt;a href=&#34;https://arxiv.org/abs/2511.10707&#34;&gt;Bias-Restrained Prefix Representation Finetuning for Mathematical Reasoning&lt;/a&gt;被AAAI会议录用！&lt;/p&gt;</description>
     </item>
     <item>
       <title>智游镜——AI游戏研究团队民间公众号正式上线！</title>
-      <link>https://igloomatics.github.io/project-aigame/news/%E6%99%BA%E6%B8%B8%E9%95%9Cai%E6%B8%B8%E6%88%8F%E7%A0%94%E7%A9%B6%E5%9B%A2%E9%98%9F%E6%B0%91%E9%97%B4%E5%85%AC%E4%BC%97%E5%8F%B7%E6%AD%A3%E5%BC%8F%E4%B8%8A%E7%BA%BF/</link>
+      <link>https://gitee.com/zgc-webcompetition/aigame-lab/news/%E6%99%BA%E6%B8%B8%E9%95%9Cai%E6%B8%B8%E6%88%8F%E7%A0%94%E7%A9%B6%E5%9B%A2%E9%98%9F%E6%B0%91%E9%97%B4%E5%85%AC%E4%BC%97%E5%8F%B7%E6%AD%A3%E5%BC%8F%E4%B8%8A%E7%BA%BF/</link>
       <pubDate>Thu, 16 Oct 2025 00:00:00 +0000</pubDate>
-      <guid>https://igloomatics.github.io/project-aigame/news/%E6%99%BA%E6%B8%B8%E9%95%9Cai%E6%B8%B8%E6%88%8F%E7%A0%94%E7%A9%B6%E5%9B%A2%E9%98%9F%E6%B0%91%E9%97%B4%E5%85%AC%E4%BC%97%E5%8F%B7%E6%AD%A3%E5%BC%8F%E4%B8%8A%E7%BA%BF/</guid>
+      <guid>https://gitee.com/zgc-webcompetition/aigame-lab/news/%E6%99%BA%E6%B8%B8%E9%95%9Cai%E6%B8%B8%E6%88%8F%E7%A0%94%E7%A9%B6%E5%9B%A2%E9%98%9F%E6%B0%91%E9%97%B4%E5%85%AC%E4%BC%97%E5%8F%B7%E6%AD%A3%E5%BC%8F%E4%B8%8A%E7%BA%BF/</guid>
       <description>&lt;p&gt;智游镜——AI游戏研究团队民间公众号正式上线！&lt;/p&gt;
 &lt;p&gt;大家好！我们是来自&lt;strong&gt;北京中关村学院&lt;/strong&gt;的AI游戏研究团队。很高兴通过这个全新的公众号与大家相见。我们给公众号取名叫作&lt;strong&gt;智游镜&lt;/strong&gt;。在这里，我们将分享AI游戏领域的前沿进展、深度评测以及我们的研究成果。&lt;a href=&#34;https://mp.weixin.qq.com/s/v4xG3SgZRoKmXWiZEx740w&#34;&gt;点击此处进入公众号&lt;/a&gt;&lt;/p&gt;
 &lt;h2 id=&#34;我们的感兴趣领域包括&#34;&gt;&lt;strong&gt;我们的感兴趣领域包括：&lt;/strong&gt;&lt;/h2&gt;
@@ -62,37 +62,37 @@
     </item>
     <item>
       <title></title>
-      <link>https://igloomatics.github.io/project-aigame/contact/</link>
+      <link>https://gitee.com/zgc-webcompetition/aigame-lab/contact/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>https://igloomatics.github.io/project-aigame/contact/</guid>
+      <guid>https://gitee.com/zgc-webcompetition/aigame-lab/contact/</guid>
       <description>contact</description>
     </item>
     <item>
       <title></title>
-      <link>https://igloomatics.github.io/project-aigame/home/</link>
+      <link>https://gitee.com/zgc-webcompetition/aigame-lab/home/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>https://igloomatics.github.io/project-aigame/home/</guid>
+      <guid>https://gitee.com/zgc-webcompetition/aigame-lab/home/</guid>
       <description>AI&amp;amp;Game Lab @ ZGCA 主页</description>
     </item>
     <item>
       <title></title>
-      <link>https://igloomatics.github.io/project-aigame/people/</link>
+      <link>https://gitee.com/zgc-webcompetition/aigame-lab/people/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>https://igloomatics.github.io/project-aigame/people/</guid>
+      <guid>https://gitee.com/zgc-webcompetition/aigame-lab/people/</guid>
       <description>people</description>
     </item>
     <item>
       <title></title>
-      <link>https://igloomatics.github.io/project-aigame/publications/</link>
+      <link>https://gitee.com/zgc-webcompetition/aigame-lab/publications/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>https://igloomatics.github.io/project-aigame/publications/</guid>
+      <guid>https://gitee.com/zgc-webcompetition/aigame-lab/publications/</guid>
       <description>publications</description>
     </item>
     <item>
       <title>Dynasor-CoT Demo</title>
-      <link>https://igloomatics.github.io/project-aigame/demo/dynasor-cot/</link>
+      <link>https://gitee.com/zgc-webcompetition/aigame-lab/demo/dynasor-cot/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>https://igloomatics.github.io/project-aigame/demo/dynasor-cot/</guid>
+      <guid>https://gitee.com/zgc-webcompetition/aigame-lab/demo/dynasor-cot/</guid>
       <description></description>
     </item>
   </channel>
